@@ -127,3 +127,17 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# output info
+*.html
+*.csv
+
+# web drivers 
+driver/*
+
+# vscode settings files
+# settings.json
+.vscode/launch.json
+
+# mac files
+*.DS_Store

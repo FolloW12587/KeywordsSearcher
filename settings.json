@@ -1,0 +1,5 @@
+{
+    "keyword": "prestamos",
+    "driver_path": "driver/chromedriver",
+    "time_to_sleep": 2
+}
