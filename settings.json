@@ -1,5 +1,15 @@
 {
     "keyword": "prestamos",
     "driver_path": "driver/chromedriver",
-    "time_to_sleep": 2
+    "keyword_file_path": "keywords.csv",
+    "time_to_sleep": 2,
+    "app_links": [
+        "https://play.google.com/store/apps/details?id=xyz.explus.prestamos",
+        "https://play.google.com/store/apps/details?id=com.truloansplus.prestamos",
+        "https://play.google.com/store/apps/details?id=com.fastloans.prestamos",
+        "https://play.google.com/store/apps/details?id=com.rulingloans.prestamos",
+        "https://play.google.com/store/apps/details?id=com.loanstake.prestamos",
+        "https://play.google.com/store/apps/details?id=com.takefastloans.advence.loan",
+        "https://play.google.com/store/apps/details?id=com.fastmoneyloans.cash.advence"
+    ]
 }

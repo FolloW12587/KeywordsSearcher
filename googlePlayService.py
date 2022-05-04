@@ -13,12 +13,12 @@ class GooglePlayService:
         self.driver = driver
         # self.url = "https://api.ipify.org?format=json"
 
-    def openStoreSearchPage(self, keyword: str = config.SETTINGS['keyword']):
+    def openStoreSearchPage(self, keyword: str=config.SETTINGS['keyword']):
         """ Opens google store search page with given keyword.
         By `default` it is set in `settings.json`. """
         url = self.base_url.format(keyword=keyword)
         self.driver.get(url)
-        sleep(config.SETTINGS['time_to_sleep'])
+        # sleep(config.SETTINGS['time_to_sleep'])
 
     def scrollPageToEnd(self):
         """ Scrolles page till the end and waiting for the uploads. """
@@ -31,7 +31,10 @@ class GooglePlayService:
                 "window.scrollTo(0, document.body.scrollHeight);")
 
             # Wait to load page
-            sleep(config.SETTINGS['time_to_sleep'])
+            # Hxlbvc
+            sleep(config.SETTINGS['time_to_sleep']/2)
+            while len(self.driver.find_elements_by_class_name("Hxlbvc")):
+                sleep(config.SETTINGS['time_to_sleep']/4)
 
             # Calculate new scroll height and compare with last scroll height
             new_height = self.driver.execute_script(
