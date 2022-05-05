@@ -1,18 +1,20 @@
 import os
 from logging import config
 
+import config as cfg
+
 
 LOG_CONFIG = {
     "version": 1,
     "root": {
         "handlers": ["console", "file", "info_file"],
-        "level": "DEBUG",
+        "level": "DEBUG" if cfg.DEBUG else "INFO",
     },
     "handlers": {
         "console": {
             "formatter": "std_out",
             "class": "logging.StreamHandler",
-            "level": "DEBUG",
+            "level": "DEBUG" if cfg.DEBUG else "INFO",
         },
         "file": {
             "formatter": "file_formatter",
@@ -24,7 +26,7 @@ LOG_CONFIG = {
             "formatter": "file_formatter",
             "class": "logging.FileHandler",
             "filename": "info.log",
-            "level": "DEBUG"
+            "level": "DEBUG" if cfg.DEBUG else "INFO"
         }
     },
     "formatters": {
