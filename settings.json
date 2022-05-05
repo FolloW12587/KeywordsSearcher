@@ -1,7 +1,7 @@
 {
     "keyword": "prestamos",
     "driver_path": "driver/chromedriver",
-    "keyword_file_path": "keywords.csv",
+    "keyword_file_path": "resources/keywords.csv",
     "time_to_sleep": 1,
     "is_headless_mode": true,
     "number_of_threads": 2,

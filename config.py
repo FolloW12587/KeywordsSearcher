@@ -10,7 +10,8 @@ def __getSettingsData() -> dict:
 
 
 URL = "https://play.google.com/store/search?q={keyword}&c=apps&hl=es-ES&gl=MX"
-CURRENT_DATETIME = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+CURRENT_DATETIME_STR = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+CURRENT_DATE_STR = datetime.now().strftime("%Y-%m-%d")
 
 DEBUG = False
 

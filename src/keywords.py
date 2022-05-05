@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 def getKeywordsStats():
     """ Gets all keywords statistics by threads and write it to file """
+    __createOutputDirIfNotExists()
+    
     splitted_keywords = getSplittedKeywords()
     with ThreadPoolExecutor(config.NUMBER_OF_THREADS) as executor:
         executor.map(keywordsThreadFunc, splitted_keywords, range(
@@ -24,8 +26,9 @@ def getKeywordsStats():
 def keywordsThreadFunc(keywords: List[str], thread_num: int = 0):
     """ Func to get all stata for keywords list and write it to file """
     logger.info(f"Started thread {thread_num}")
+
     driver = driver_module.getWebDriver()
-    with open(f"results_{config.CURRENT_DATETIME}_{thread_num}.csv", 'w') as wr:
+    with open(f"output/{config.CURRENT_DATE_STR}/results_{config.CURRENT_DATETIME_STR}_{thread_num}.csv", 'w') as wr:
         wr.write("Keyword," +
                  ",".join(config.APP_LINKS) + "\n")
         for i, keyword in enumerate(keywords):
@@ -42,6 +45,7 @@ def keywordsThreadFunc(keywords: List[str], thread_num: int = 0):
                         map(lambda x: str(keyword_stats[x]), config.APP_LINKS))
                 ) + "\n"
             wr.write(s)
+            break
 
     logger.info(f"Finished thread {thread_num}")
     driver.close()
@@ -82,13 +86,20 @@ def getKeywordStatistics(keyword: str, driver: webdriver.Chrome, thread_num: int
 def concatResultsIntoOneFile():
     """ Merges results from all thread results files to one. """
     logger.info("Merging data into one file.")
+    __createOutputDirIfNotExists()
 
-    with open(f"results_{config.CURRENT_DATETIME}.csv", 'w') as wr:
+    with open(f"output/{config.CURRENT_DATE_STR}/results_{config.CURRENT_DATETIME_STR}.csv", 'w') as wr:
         wr.write("Keyword," +
                  ",".join(config.APP_LINKS) + "\n")
         for i in range(config.NUMBER_OF_THREADS):
-            with open(f"results_{config.CURRENT_DATETIME}_{i}.csv", 'r') as r:
+            with open(f"output/{config.CURRENT_DATE_STR}/results_{config.CURRENT_DATETIME_STR}_{i}.csv", 'r') as r:
                 # Skip header line
                 r.readline()
 
                 wr.write(r.read())
+
+
+def __createOutputDirIfNotExists():
+    """ Creates output directory if it is not exists """
+    if not os.path.isdir(f"output/{config.CURRENT_DATE_STR}"):
+        os.mkdir(f"output/{config.CURRENT_DATE_STR}")

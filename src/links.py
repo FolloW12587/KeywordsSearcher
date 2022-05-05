@@ -15,7 +15,7 @@ def getLinks(keyword: str, driver: webdriver.Chrome, thread_num: int) -> List[st
 
 def saveLinks(links: List[str]):
     """ Saves all links in `links.csv` file """
-    with open("links.csv", 'w') as wr:
+    with open("output/links.csv", 'w') as wr:
         wr.write('position,url\n')
         for i, url in enumerate(links):
             wr.write(f'{i+1},{url}\n')
