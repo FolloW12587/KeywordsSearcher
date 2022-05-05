@@ -42,7 +42,6 @@ def keywordsThreadFunc(keywords: List[str], thread_num: int = 0):
                         map(lambda x: str(keyword_stats[x]), config.APP_LINKS))
                 ) + "\n"
             wr.write(s)
-            break
 
     logger.info(f"Finished thread {thread_num}")
     driver.close()
