@@ -133,7 +133,7 @@ dmypy.json
 *.csv
 
 # web drivers 
-driver/*
+driver/chromedriver
 
 # vscode settings files
 # settings.json
