@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 def getKeywordsStats():
     """ Gets all keywords statistics by threads and write it to file """
+    logger.info("Getting keywords statistics.")
     __createOutputDirIfNotExists()
     
     splitted_keywords = getSplittedKeywords()
@@ -45,7 +46,7 @@ def keywordsThreadFunc(keywords: List[str], thread_num: int = 0):
                         map(lambda x: str(keyword_stats[x]), config.APP_LINKS))
                 ) + "\n"
             wr.write(s)
-            break
+            # break
 
     logger.info(f"Finished thread {thread_num}")
     driver.close()

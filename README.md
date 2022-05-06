@@ -31,7 +31,7 @@ pip install -r requirements.txt
 Not all files are provided in the repository.
 
 #### Keywords list
-You should create file with list of keywords at directory `resources`. Every keyword should be seperated with `\n` - new line symbol. Default file name is **keywords.csv** but you can change it in `settings.json`.
+If you want to use keywords statistics search, you should create file with list of keywords at directory `resources`. Every keyword should be seperated with `\n` - new line symbol. Default file name is **keywords.csv** but you can change it in `settings.json`.
 
 #### Chromedriver
 You also should download **chromedriver** that suits to your system.
@@ -51,3 +51,29 @@ All flexible settings of the application are in `settings.json`.
 - **is_headless_mode** - bool; `Hide chromedriver` GUI or not. By tests it is **not** significantly improving performance in perpose of time but maybe it reduces the load on RAM or processor. By default set to `True`;
 - **number_of_threads** - int; `Number of threads` - how many driver instance would be scanning pages in parallel. By default set to `2`;
 - **app_links** - list(str); `List of app links` whose positions need to be checked.
+
+# Usage
+
+The entry point of the application is `main.py`. To see help, input this in command line:
+```
+python main.py --help
+```
+Output:
+```
+usage: Keywords searcher [-h] [--links] [--kwstats]
+
+This programm is written for automate the process of finding links, keywords statistics.
+
+optional arguments:
+  -h, --help  show this help message and exit
+  --links     Upload links for the keyword that is set in settings.json.
+  --kwstats   Upload keywords statistics (Also starts if none of the other parameter were given).
+```
+
+This means that for now you can use 2 main functionalities - upload links and upload keywords statistics. For instance:
+```
+python main.py --links              *# Uploads the links*
+python main.py --kwstats            *# Uploads keywords statistics*
+python main.py --links --kwstats    *# Uploads links and then keywords statistics*
+python main.py                      *# Uploads keywords statistics*
+```
