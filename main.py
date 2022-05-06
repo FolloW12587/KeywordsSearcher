@@ -4,6 +4,7 @@ import logging
 from arguments import parser
 import logs
 from src.keywords import getKeywordsStats
+from src.links import uploadLinks
 
 logger = logging.getLogger(__name__)
 
@@ -15,11 +16,10 @@ def main():
 
     # if flag for upload links was given
     if args.links:
-        args.links()
-
+        uploadLinks()
     # if flag for upload keywords stats was given
     if args.kwstats:
-        args.kwstats()
+        getKeywordsStats()
 
     # By default if there were no any other flags, start getting keywords statistics
     if not args.links and not args.kwstats:
