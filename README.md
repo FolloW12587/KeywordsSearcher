@@ -72,8 +72,8 @@ optional arguments:
 
 This means that for now you can use 2 main functionalities - upload links and upload keywords statistics. For instance:
 ```
-python main.py --links              *# Uploads the links*
-python main.py --kwstats            *# Uploads keywords statistics*
-python main.py --links --kwstats    *# Uploads links and then keywords statistics*
-python main.py                      *# Uploads keywords statistics*
+python main.py --links              # Uploads the links
+python main.py --kwstats            # Uploads keywords statistics
+python main.py --links --kwstats    # Uploads links and then keywords statistics
+python main.py                      # Uploads keywords statistics
 ```
