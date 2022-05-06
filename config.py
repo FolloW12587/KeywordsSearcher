@@ -24,6 +24,7 @@ assert "time_to_sleep" in _SETTINGS, "time_to_sleep must be specified in setting
 assert "app_links" in _SETTINGS, "app_links list must be specified in settings.json"
 assert "is_headless_mode" in _SETTINGS, "is_headless_mode must be specified in settings.json"
 assert "number_of_threads" in _SETTINGS, "number_of_threads must be specified in settings.json"
+assert "timeout_time" in _SETTINGS, "timeout_time must be specified in settings.json"
 
 
 KEYWORD = _SETTINGS['keyword']
@@ -33,3 +34,4 @@ TIME_TO_SLEEP = _SETTINGS['time_to_sleep']
 APP_LINKS = _SETTINGS['app_links']
 IS_HEADLESS_MODE = _SETTINGS['is_headless_mode']
 NUMBER_OF_THREADS = _SETTINGS['number_of_threads']
+TIMEOUT_TIME = _SETTINGS['timeout_time']

@@ -4,6 +4,7 @@
     "keyword_file_path": "resources/keywords.csv",
     "time_to_sleep": 1,
     "is_headless_mode": true,
+    "timeout_time": 15,
     "number_of_threads": 2,
     "app_links": [
         "https://play.google.com/store/apps/details?id=xyz.explus.prestamos",

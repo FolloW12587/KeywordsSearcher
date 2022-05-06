@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 from selenium import webdriver
 from typing import List
 
@@ -12,8 +13,14 @@ logger = logging.getLogger(__name__)
 def getLinks(keyword: str, driver: webdriver.Chrome, thread_num: int=0) -> List[str]:
     """ Uploads and returns links by the given `keyword`. """
     gPS = GooglePlayService(driver=driver, thread_num=thread_num)
-    gPS.openStoreSearchPage(keyword=keyword)
-    gPS.scrollPageToEnd()
+    if not gPS.openStoreSearchPage(keyword=keyword):
+        logger.warning("Bad request")
+        sleep(config.TIME_TO_SLEEP)
+        return []
+    if not gPS.scrollPageToEnd():
+        logger.warning("Bad request scrolling")
+        sleep(config.TIME_TO_SLEEP)
+        return []
     links = gPS.getAllAppLinks()
     return links
 
@@ -32,7 +39,7 @@ def uploadLinks():
     """ Uploads links by the `keyword` that is set in `settings.json`.
     Then saves them to `output/links.csv`. """
     logger.info("Uploading links.")
-    
+
     driver = getWebDriver()
     links = getLinks(keyword=config.KEYWORD, driver=driver)
     saveLinks(links)

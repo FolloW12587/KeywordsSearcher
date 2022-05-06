@@ -51,6 +51,7 @@ All flexible settings of the application are in `settings.json`.
 - **is_headless_mode** - bool; `Hide chromedriver` GUI or not. By tests it is **not** significantly improving performance in perpose of time but maybe it reduces the load on RAM or processor. By default set to `True`;
 - **number_of_threads** - int; `Number of threads` - how many driver instance would be scanning pages in parallel. By default set to `2`;
 - **app_links** - list(str); `List of app links` whose positions need to be checked.
+- **timeout_time** - int; Time in seconds to wait for connection.
 
 # Usage
 
@@ -60,20 +61,23 @@ python main.py --help
 ```
 Output:
 ```
-usage: Keywords searcher [-h] [--links] [--kwstats]
+usage: Keywords searcher [-h] [--links] [--kwstats] [--mergestats [D [D ...]]]
 
 This programm is written for automate the process of finding links, keywords statistics.
 
 optional arguments:
-  -h, --help  show this help message and exit
-  --links     Upload links for the keyword that is set in settings.json.
-  --kwstats   Upload keywords statistics (Also starts if none of the other parameter were given).
+  -h, --help            show this help message and exit
+  --links               Upload links for the keyword that is set in settings.json.
+  --kwstats             Upload keywords statistics (Also starts if none of the other parameter were given).
+  --mergestats [D [D ...]]
+                        Merges statistics for given days.
 ```
 
-This means that for now you can use 2 main functionalities - upload links and upload keywords statistics. For instance:
+This means that for now you can use 3 main functionalities - upload links, upload keywords statistics, merge uploaded keywords statistics in one file. For instance:
 ```
-python main.py --links              # Uploads the links
-python main.py --kwstats            # Uploads keywords statistics
-python main.py --links --kwstats    # Uploads links and then keywords statistics
-python main.py                      # Uploads keywords statistics
+python main.py --links                  # Uploads the links
+python main.py --kwstats                # Uploads keywords statistics
+python main.py --links --kwstats        # Uploads links and then keywords statistics
+python main.py --mergestats 2022-05-05  # Merges uploaded keywords statistics for day 2022-05-05
+python main.py                          # Uploads keywords statistics
 ```

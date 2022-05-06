@@ -31,10 +31,10 @@ LOG_CONFIG = {
     },
     "formatters": {
         "std_out": {
-            "format": '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            "format": '%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s'
         },
         "file_formatter": {
-            "format": '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            "format": '%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s'
         }
     }
 }

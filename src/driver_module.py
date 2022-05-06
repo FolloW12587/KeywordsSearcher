@@ -20,5 +20,5 @@ def getWebDriver() -> webdriver.Chrome:
     options = Options()
     options.headless = config.IS_HEADLESS_MODE
     driver = webdriver.Chrome(service=service, options=options)
-    driver.set_page_load_timeout(30)
+    driver.set_page_load_timeout(config.TIMEOUT_TIME)
     return driver
