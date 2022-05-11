@@ -1,6 +1,6 @@
-from distutils.debug import DEBUG
 import json
 from datetime import datetime
+from typing import List
 
 
 def __getSettingsData() -> dict:
@@ -35,3 +35,12 @@ APP_LINKS = _SETTINGS['app_links']
 IS_HEADLESS_MODE = _SETTINGS['is_headless_mode']
 NUMBER_OF_THREADS = _SETTINGS['number_of_threads']
 TIMEOUT_TIME = _SETTINGS['timeout_time']
+
+KEYWORD: str
+DRIVER_PATH: str
+KEYWORD_FILE_PATH: str
+TIME_TO_SLEEP: int
+APP_LINKS: List[str]
+IS_HEADLESS_MODE: bool
+NUMBER_OF_THREADS: int
+TIMEOUT_TIME: int

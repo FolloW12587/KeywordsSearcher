@@ -6,6 +6,7 @@ from selenium import webdriver
 from typing import Dict, List
 
 import config
+from exceptions import BadDriverException
 from src import driver_module
 from src.links import getLinks
 
@@ -34,12 +35,24 @@ def keywordsThreadFunc(keywords: List[str], thread_num: int = 0):
         wr.write(__createFileHeader())
         for i, keyword in enumerate(keywords):
             if i % 10 == 0:
-                logger.info(f"Thread {thread_num} - {i}")
+                logger.info(f"Thread {thread_num} - completed {i} out of {len(keywords)}")
                 wr.flush()
                 os.fsync(wr.fileno())
 
-            keyword_stats = getKeywordStatistics(
-                keyword=keyword, driver=driver, thread_num=thread_num)
+            try:
+                keyword_stats = getKeywordStatistics(
+                    keyword=keyword, driver=driver, thread_num=thread_num)
+            except BadDriverException as e:
+                logger.warning(e)
+                logger.info("Reloading driver")
+                driver = driver_module.getWebDriver()
+                try:
+                    keyword_stats = getKeywordStatistics(
+                        keyword=keyword, driver=driver, thread_num=thread_num)
+                except BadDriverException as e:
+                    logger.exception(e)
+                    break
+
             s = keyword + "," + \
                 ",".join(
                     list(
@@ -71,7 +84,6 @@ def getKeywordStatistics(keyword: str, driver: webdriver.Chrome, thread_num: int
     The key is app link, value is position in google play store (0 if not exists). """
     links = getLinks(keyword=keyword, driver=driver, thread_num=thread_num)
     app_links = config.APP_LINKS
-    app_links: List[str]
 
     output = {}
 

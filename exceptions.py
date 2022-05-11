@@ -1,0 +1,4 @@
+
+
+class BadDriverException(Exception):
+    pass

@@ -1,9 +1,10 @@
 import logging
 from time import sleep
 from selenium import webdriver
-from typing import List
+from typing import List, Optional
 
 import config
+from exceptions import BadDriverException
 from services.googlePlayService import GooglePlayService
 from src.driver_module import getWebDriver
 
@@ -14,13 +15,13 @@ def getLinks(keyword: str, driver: webdriver.Chrome, thread_num: int=0) -> List[
     """ Uploads and returns links by the given `keyword`. """
     gPS = GooglePlayService(driver=driver, thread_num=thread_num)
     if not gPS.openStoreSearchPage(keyword=keyword):
-        logger.warning("Bad request")
-        sleep(config.TIME_TO_SLEEP)
-        return []
+        # sleep(config.TIME_TO_SLEEP)
+        raise BadDriverException("Bad sequence of requests. Driver needs to be reloaded")
     if not gPS.scrollPageToEnd():
-        logger.warning("Bad request scrolling")
-        sleep(config.TIME_TO_SLEEP)
-        return []
+        # logger.warning("Bad request scrolling")
+        # sleep(config.TIME_TO_SLEEP)
+        # return []
+        raise BadDriverException("Bad sequence of requests. Driver needs to be reloaded")
     links = gPS.getAllAppLinks()
     return links
 
