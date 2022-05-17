@@ -19,13 +19,13 @@ LOG_CONFIG = {
         "file": {
             "formatter": "file_formatter",
             "class": "logging.FileHandler",
-            "filename": "errors.log",
+            "filename": "logs.errors.log",
             "level": "ERROR"
         },
         "info_file": {
             "formatter": "file_formatter",
             "class": "logging.FileHandler",
-            "filename": "info.log",
+            "filename": "logs.info.log",
             "level": "DEBUG" if cfg.DEBUG else "INFO"
         }
     },

@@ -121,7 +121,7 @@ def mergeKeywordStatsForDays(days: List[str]):
     path = "output"
     
     if len(days) == 1:
-        __createOutputDirIfNotExists(dir_name=days)
+        __createOutputDirIfNotExists(dir_name=days[0])
         path += f"/{days[0]}"
 
     stats = getLoadedKeywordsStatsForDays(days=days)
