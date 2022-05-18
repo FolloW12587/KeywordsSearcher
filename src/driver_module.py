@@ -3,7 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 
-import config
+from django.conf import settings
 
 
 def testDriver():
@@ -16,9 +16,9 @@ def testDriver():
 
 def getWebDriver() -> webdriver.Chrome:
     """ Returns Chrome webdriver """
-    service = Service(config.DRIVER_PATH)
+    service = Service(settings.DRIVER_PATH)
     options = Options()
-    options.headless = config.IS_HEADLESS_MODE
+    options.headless = settings.IS_HEADLESS_MODE
     driver = webdriver.Chrome(service=service, options=options)
-    driver.set_page_load_timeout(config.TIMEOUT_TIME)
+    driver.set_page_load_timeout(settings.TIMEOUT_TIME)
     return driver

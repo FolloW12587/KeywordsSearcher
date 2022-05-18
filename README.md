@@ -1,4 +1,4 @@
-# KeywordsSearcher
+<!-- # KeywordsSearcher
 
 ## Installation
 
@@ -80,4 +80,4 @@ python main.py --kwstats                # Uploads keywords statistics
 python main.py --links --kwstats        # Uploads links and then keywords statistics
 python main.py --mergestats 2022-05-05  # Merges uploaded keywords statistics for day 2022-05-05
 python main.py                          # Uploads keywords statistics
-```
+``` -->

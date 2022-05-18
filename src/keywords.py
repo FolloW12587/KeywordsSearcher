@@ -1,251 +1,159 @@
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 import logging
-import os
-import re
 from selenium import webdriver
-from typing import Dict, List
+from typing import List
 
-import config
+# import settings
+from django.conf import settings
 from exceptions import BadDriverException
 from src import driver_module
-from src.links import getLinks
+from src.links import getGoogleLinks
+from web.kwfinder import models
 
 logger = logging.getLogger(__name__)
 
 
-def getKeywordsStats():
+def getKeywordsStats(app_type_id: int):
     """ Gets all keywords statistics by threads and write it to file """
     logger.info("Getting keywords statistics.")
-    __createOutputDirIfNotExists()
 
-    splitted_keywords = getSplittedKeywords()
-    with ThreadPoolExecutor(config.NUMBER_OF_THREADS) as executor:
-        executor.map(keywordsThreadFunc, splitted_keywords, range(
-            config.NUMBER_OF_THREADS))
+    app_type = models.AppType.objects.get(id=app_type_id)
+    script_run = models.AppPositionScriptRun(app_type=app_type)
+    script_run.save()
+    splitted_keywords = __getSplittedKeywords(app_type=app_type)
+    with ThreadPoolExecutor(settings.NUMBER_OF_THREADS) as executor:
+        executor.map(
+            __keywordsThreadFunc,
+            splitted_keywords,
+            [script_run, ] * settings.NUMBER_OF_THREADS,
+            range(settings.NUMBER_OF_THREADS)
+        )
+    script_run.ended_at = datetime.now()
+    script_run.save()
 
-    concatResultsIntoOneFile()
 
-
-def keywordsThreadFunc(keywords: List[str], thread_num: int = 0):
-    """ Func to get all stata for keywords list and write it to file """
-    logger.info(f"Started thread {thread_num}")
+def __keywordsThreadFunc(keywords: List[models.Keyword],
+                         run: models.AppPositionScriptRun, thread_num: int = 0):
+    """ Func to get all stata forgiven `keywords list` and write it to db """
+    logger.info(f"Started thread {thread_num} of run with id {run.id}")
 
     driver = driver_module.getWebDriver()
-    with open(f"output/{config.CURRENT_DATE_STR}/results_{config.CURRENT_DATETIME_STR}_{thread_num}.csv", 'w') as wr:
-        wr.write(__createFileHeader())
-        for i, keyword in enumerate(keywords):
-            if i % 10 == 0:
-                logger.info(f"Thread {thread_num} - completed {i} out of {len(keywords)}")
-                wr.flush()
-                os.fsync(wr.fileno())
 
+    for i, keyword in enumerate(keywords):
+        if i % 10 == 0:
+            logger.info(
+                f"Thread {thread_num} - completed {i} out of {len(keywords)}")
+
+        try:
+            __getKeywordStatistics(
+                keyword=keyword, driver=driver, thread_num=thread_num)
+        except BadDriverException as e:
+            logger.warning(e)
+            logger.info("Reloading driver")
+            driver = driver_module.getWebDriver()
             try:
-                keyword_stats = getKeywordStatistics(
+                __getKeywordStatistics(
                     keyword=keyword, driver=driver, thread_num=thread_num)
             except BadDriverException as e:
-                logger.warning(e)
-                logger.info("Reloading driver")
-                driver = driver_module.getWebDriver()
-                try:
-                    keyword_stats = getKeywordStatistics(
-                        keyword=keyword, driver=driver, thread_num=thread_num)
-                except BadDriverException as e:
-                    logger.exception(e)
-                    break
+                logger.exception(e)
+                break
 
-            s = keyword + "," + \
-                ",".join(
-                    list(
-                        map(lambda x: str(keyword_stats[x]), config.APP_LINKS))
-                ) + "\n"
-            wr.write(s)
-            # break
+        # break
 
     logger.info(f"Finished thread {thread_num}")
     driver.close()
 
 
-def getKeywords() -> List[str]:
-    """ Returns list of keywords. """
-    with open(config.KEYWORD_FILE_PATH, 'r') as r:
-        lines = r.readlines()
-        return [line.strip() for line in lines]
+def __getKeywords(app_type: models.AppType) -> List[models.Keyword]:
+    """ Returns list of keywords of given app type. """
+    return list(models.Keyword.objects.filter(app_type=app_type).all())
 
 
-def getSplittedKeywords() -> List[List[str]]:
-    """ Returns lists of keywords splitted approximately equal by the number of threads """
-    keywords = getKeywords()
-    k, m = divmod(len(keywords), config.NUMBER_OF_THREADS)
-    return [keywords[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(config.NUMBER_OF_THREADS)]
+def __getSplittedKeywords(app_type: models.AppType) -> List[List[models.Keyword]]:
+    """ Returns lists of keywords splitted approximately 
+    equal by the number of threads of given app_type """
+    keywords = __getKeywords(app_type=app_type)
+    k, m = divmod(len(keywords), settings.NUMBER_OF_THREADS)
+    return [keywords[i*k+min(i, m):(i+1)*k+min(i+1, m)]
+            for i in range(settings.NUMBER_OF_THREADS)]
 
 
-def getKeywordStatistics(keyword: str, driver: webdriver.Chrome, thread_num: int) -> Dict[str, int]:
-    """ Returns statistic for `keyword`. It is dict. 
-    The key is app link, value is position in google play store (0 if not exists). """
-    links = getLinks(keyword=keyword, driver=driver, thread_num=thread_num)
-    app_links = config.APP_LINKS
+def __getKeywordStatistics(keyword: models.Keyword, driver: webdriver.Chrome,
+                           thread_num: int, run: models.AppPositionScriptRun):
+    """ Returns statistic for `keyword`. It is dict. The key is app link, 
+    value is position in google play store (0 if not exists). """
+    links = getGoogleLinks(
+        keyword=keyword.name, 
+        driver=driver,
+        thread_num=thread_num, 
+        strore_attributes=keyword.app_type.google_store_link_attributes)
+    apps = __getApps(app_type=keyword.app_type)
 
-    output = {}
-
-    for app_link in app_links:
+    for app in apps:
         try:
-            output[app_link] = links.index(app_link) + 1
+            position = links.index(app.link) + 1
         except ValueError:
-            output[app_link] = 0
+            position = 0
 
-    return output
-
-
-def concatResultsIntoOneFile():
-    """ Merges results from all thread results files to one. """
-    logger.info("Merging data into one file.")
-    __createOutputDirIfNotExists()
-
-    with open(f"output/{config.CURRENT_DATE_STR}/results_{config.CURRENT_DATETIME_STR}.csv", 'w') as wr:
-        wr.write(__createFileHeader())
-        for i in range(config.NUMBER_OF_THREADS):
-            with open(f"output/{config.CURRENT_DATE_STR}/results_{config.CURRENT_DATETIME_STR}_{i}.csv", 'r') as r:
-                # Skip header line
-                r.readline()
-
-                wr.write(r.read())
+        data = models.AppPositionScriptRunData(
+            run=run,
+            keyword=keyword,
+            app=app,
+            position=position
+        )
+        data.save()
 
 
-def mergeKeywordStatsForDays(days: List[str]):
-    """ Merges all stats for list of `days` into one file """
-    if len(days) == 0:
-        logger.error("Day is not provided")
-        return
-
-    logger.info(f"Starting merging stats for days: {', '.join(days)}")
-    path = "output"
-    
-    if len(days) == 1:
-        __createOutputDirIfNotExists(dir_name=days[0])
-        path += f"/{days[0]}"
-
-    stats = getLoadedKeywordsStatsForDays(days=days)
-    stats = mergeStats(stats=stats)
-    with open(f"{path}/merged_results_{'__'.join(days)}.csv", 'w') as wr:
-        wr.write(__createFileHeader())
-        for keyword in stats:
-            l = [keyword,]
-            for app_link in config.APP_LINKS:
-                l.append(stats[keyword][app_link] if app_link in stats[keyword] else "0")
-
-            wr.write(",".join(l))
+def __getApps(app_type: models.AppType) -> List[models.App]:
+    """ Returns List of apps that relate to given `app_type` """
+    return list(models.App.objects.filter(app_type=app_type).all())
 
 
-def mergeStats(stats: Dict[str, Dict[str, List[str]]]) -> Dict[str, Dict[str, str]]:
-    """ Returns stats merged stats. Every paired keyword-app_link: list is reduced to a str """
-    output = {}
+def mergeKeywordStatsForDays(day: str, app_type_id: int):
+    """ Merges all stats for a `day` """
 
-    for keyword in stats:
-        output[keyword] = {}
+    logger.info(f"Starting merging stats for {day}")
+    app_type = models.AppType.objects.get(id=app_type_id)
+    runs = models.AppPositionScriptRun.objects.filter(
+        app_type=app_type,
+        started_at__range=[f"{day} 00:00:00", f"{day} 23:59:59"]).all()
+    keywords = models.Keyword.objects.filter(app_type=app_type).all()
+    apps = models.App.objects.filter(app_type=app_type).all()
 
-        for app_link in stats[keyword]:
-            positions = stats[keyword][app_link]
-
-            output[keyword][app_link] = __getMaxRepeatedElementOrConcat(positions)
-
-    return output
-
-
-def getLoadedKeywordsStatsForDays(days: List[str]) -> Dict[str, Dict[str, List[str]]]:
-    """ Returns loaded keywords stats for given `days`. Returned value is a Dict 
-    where key is keywords and value is another Dict where key is an app_link 
-    and value is a List of its positions during the day.\n
-    {
-        "<keyword1>": {
-            "<app_link1>": [
-                "<position1>", ...
-            ], ...
-        }, ...
-    } """
-    stats = {}
-
-    for day in days:
-        daily_stats = getLoadedKeywordsStatsForDay(day=day)
-
-        for keyword in daily_stats:
-            if keyword not in stats:
-                stats[keyword] = daily_stats[keyword]
-                continue
-
-            for app_link in daily_stats[keyword]:
-                if app_link not in stats[keyword]:
-                    stats[keyword][app_link] = daily_stats[keyword][app_link]
-                    continue
-
-                stats[keyword][app_link] += daily_stats[keyword][app_link]
-
-    return stats
+    for keyword in keywords:
+        for app in apps:
+            __aggregateKeywordStats(
+                day=day,
+                app=app,
+                keyword=keyword,
+                runs=runs)
 
 
-def getLoadedKeywordsStatsForDay(day: str) -> Dict[str, Dict[str, List[str]]]:
-    """ Returns loaded keywords stats for a given day. Returned value is a Dict 
-    where key is keywords and value is another Dict where key is an app_link 
-    and value is a List of its positions during the day.\n
-    {
-        "<keyword1>": {
-            "<app_link1>": [
-                "<position1>", ...
-            ], ...
-        }, ...
-    } """
-    stats = {}
-    stats: Dict[str, Dict[str, List[str]]]
+def __aggregateKeywordStats(day: str, app: models.App,
+                            keyword: models.Keyword,
+                            runs: List[models.AppPositionScriptRun]):
+    """ Aggregates stats for given `day` for an `app` and `keyword` 
+    in bunch of `runs` """
+    data = models.AppPositionScriptRunData.objects.filter(
+        keyword=keyword, run__in=runs, app=app).all()
+    position = __getMaxRepeatedElementOrAvg([d.position for d in data])
 
-    files = __findStataFiles(day=day)
-    logger.info(f"For a day {day} found files {', '.join(files)}")
-
-    for file in files:
-        with open(f"output/{day}/{file}", 'r') as r:
-            header = r.readline().strip().split(",")
-
-            for line in r:
-                l = line.split(",")
-                keyword = l[0]
-                if keyword not in stats:
-                    stats[keyword] = {}
-
-                for i, app_link in enumerate(header):
-                    if i == 0:
-                        continue
-
-                    if app_link not in stats[keyword]:
-                        stats[keyword][app_link] = []
-
-                    stats[keyword][app_link].append(l[i])
-        
-    return stats
+    aggData = models.DailyAggregatedPositionData(
+        date=datetime.strptime(day, r'%Y-%m-%d').date(),
+        keyword=keyword,
+        app=app,
+        position=position
+    )
+    aggData.save()
 
 
-def __findStataFiles(day: str) -> List[str]:
-    """ Returns list of filenames that contains full keywords stats for the given `day` """
-    # regex for merged files
-    files_to_find = f"results_{day}" + r"_\d{2}:\d{2}:\d{2}\.csv"
-    files = os.listdir(f"output/{day}")
-    return [f for f in files if re.match(files_to_find, f)]
-
-
-def __createFileHeader() -> str:
-    """ Returns heading line for csv file """
-    return "Keyword," + ",".join(config.APP_LINKS) + "\n"
-
-
-def __createOutputDirIfNotExists(dir_name: str = config.CURRENT_DATE_STR):
-    """ Creates output directory if it is not exists """
-    if not os.path.isdir(f"output/{dir_name}"):
-        os.mkdir(f"output/{dir_name}")
-
-
-def __getMaxRepeatedElementOrConcat(l: List[str]) -> str:
+def __getMaxRepeatedElementOrAvg(l: List[int]) -> int:
     if len(l) == 0:
-        return "0"
+        return 0
 
     s = set(l)
     if len(l) == len(s):
-        return ";".join(l)
+        return int(sum(l) / len(l))
 
     return max(s, key=l.count)

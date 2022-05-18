@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 if os.getenv('SECRET_KEY'):
     SECRET_KEY = os.getenv('SECRET_KEY')
 else:
-    from django.core.management.utils import get_random_secret_key  
+    from django.core.management.utils import get_random_secret_key
     SECRET_KEY = get_random_secret_key()
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -142,3 +142,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # media files
 MEDIA_ROOT = os.path.join(BASE_DIR, '')
 MEDIA_URL = os.getenv('MEDIA_URL')
+
+
+DRIVER_PATH = os.getenv('DRIVER_PATH', 'driver/chromedriver')
+TIME_TO_SLEEP = float(os.getenv('TIME_TO_SLEEP', '1'))
+NUMBER_OF_THREADS = int(os.getenv('NUMBER_OF_THREADS', '1'))
+IS_HEADLESS_MODE = bool(int(os.getenv('IS_HEADLESS_MODE', '1')))
+TIMEOUT_TIME = int(os.getenv('TIMEOUT_TIME', '15'))

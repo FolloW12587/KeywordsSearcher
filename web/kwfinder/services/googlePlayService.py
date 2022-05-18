@@ -1,10 +1,11 @@
 import logging
+from platform import platform
 from time import sleep
 from typing import List
 from selenium import webdriver
 import selenium
 
-import config
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -12,24 +13,23 @@ logger = logging.getLogger(__name__)
 class GooglePlayService:
     """ Class to manage google store service """
 
-    def __init__(self, driver: webdriver.Chrome, thread_num: int = 0) -> None:
-        self.base_url = config.URL
+    def __init__(self, driver: webdriver.Chrome,
+                 base_url: str, thread_num: int = 0) -> None:
+        self.base_url = base_url
         self.driver = driver
         self.thread_num = thread_num
-        # self.url = "https://api.ipify.org?format=json"
 
-    def openStoreSearchPage(self, keyword: str = config.KEYWORD) -> bool:
-        """ Opens google store search page with given keyword.
-        By `default` it is set in `settings.json`. 
+    def openStoreSearchPage(self, keyword: str, attributes: str) -> bool:
+        """ Opens google store search page with given keyword. 
         \nReturns `False` if Timeout exception was raised. """
-        url = self.base_url.format(keyword=keyword)
+        url = f"{self.base_url}&q={keyword}&{attributes}"
         try:
             self.driver.get(url)
         except selenium.common.exceptions.TimeoutException:
             logger.warning(
                 f"Page not loaded properly in thread {self.thread_num}!")
             try:
-                sleep(config.TIME_TO_SLEEP)
+                sleep(settings.TIME_TO_SLEEP)
                 self.driver.get(url)
             except selenium.common.exceptions.TimeoutException:
                 logger.error(
@@ -38,7 +38,7 @@ class GooglePlayService:
             except Exception as e:
                 logger.exception(e)
                 return False
-            
+
         except Exception as e:
             logger.exception(e)
             return False
@@ -59,7 +59,8 @@ class GooglePlayService:
                 self.driver.refresh()
                 last_height = self.driver.execute_script(
                     "return document.body.scrollHeight")
-            except (selenium.common.exceptions.JavascriptException, selenium.common.exceptions.TimeoutException) as e:
+            except (selenium.common.exceptions.JavascriptException,\
+                    selenium.common.exceptions.TimeoutException) as e:
                 # if second time not loaded - log error and return
                 logger.error(
                     f"Can't load page {self.driver.current_url} in thread {self.thread_num} scrolling attempt. Exception {e}")
@@ -78,9 +79,9 @@ class GooglePlayService:
 
             # Wait to load page
             # Hxlbvc
-            sleep(config.TIME_TO_SLEEP)
+            sleep(settings.TIME_TO_SLEEP)
             while len(self.driver.find_elements_by_class_name("Hxlbvc")):
-                sleep(config.TIME_TO_SLEEP/2)
+                sleep(settings.TIME_TO_SLEEP/2)
 
             # Calculate new scroll height and compare with last scroll height
             new_height = self.driver.execute_script(
