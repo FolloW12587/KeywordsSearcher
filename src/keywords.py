@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 def getKeywordsStats(app_type_id: int):
-    """ Gets all keywords statistics by threads and write it to file """
+    """ Gets all keywords statistics for app_type with given `app_type_id`
+    by threads and write it to file """
     logger.info("Getting keywords statistics.")
 
     app_type = models.AppType.objects.get(id=app_type_id)
@@ -35,7 +36,8 @@ def getKeywordsStats(app_type_id: int):
 
 def __keywordsThreadFunc(keywords: List[models.Keyword],
                          run: models.AppPositionScriptRun, thread_num: int = 0):
-    """ Func to get all stata forgiven `keywords list` and write it to db """
+    """ Func to get all stata for given `keywords list` 
+    and write it to db for given `run` """
     logger.info(f"Started thread {thread_num} of run with id {run.id}")
 
     driver = driver_module.getWebDriver()
@@ -47,18 +49,25 @@ def __keywordsThreadFunc(keywords: List[models.Keyword],
 
         try:
             __getKeywordStatistics(
-                keyword=keyword, driver=driver, thread_num=thread_num)
+                keyword=keyword, driver=driver, thread_num=thread_num, run=run)
         except BadDriverException as e:
             logger.warning(e)
             logger.info("Reloading driver")
             driver = driver_module.getWebDriver()
             try:
                 __getKeywordStatistics(
-                    keyword=keyword, driver=driver, thread_num=thread_num)
+                    keyword=keyword, driver=driver, thread_num=thread_num, run=run)
             except BadDriverException as e:
                 logger.exception(e)
                 break
+            
+            except Exception as e:
+                logger.exception(e)
+                break
 
+        except Exception as e:
+            logger.exception(e)
+            break
         # break
 
     logger.info(f"Finished thread {thread_num}")
@@ -111,7 +120,8 @@ def __getApps(app_type: models.AppType) -> List[models.App]:
 
 
 def mergeKeywordStatsForDays(day: str, app_type_id: int):
-    """ Merges all stats for a `day` """
+    """ Merges all stats for a `day` for an app_type
+    with given `app_type_id` """
 
     logger.info(f"Starting merging stats for {day}")
     app_type = models.AppType.objects.get(id=app_type_id)

@@ -1,32 +1,33 @@
-import os
-from logging import config
-
-import config as cfg
+from django.conf import settings
 
 
 LOG_CONFIG = {
     "version": 1,
+    'disable_existing_loggers': False,
     "root": {
         "handlers": ["console", "file", "info_file"],
-        "level": "DEBUG" if cfg.DEBUG else "INFO",
+        "level": "DEBUG" if settings.DEBUG else "INFO",
     },
+    # "loggers": {
+    #     ""
+    # },
     "handlers": {
         "console": {
             "formatter": "std_out",
             "class": "logging.StreamHandler",
-            "level": "DEBUG" if cfg.DEBUG else "INFO",
+            "level": "DEBUG" if settings.DEBUG else "INFO",
         },
         "file": {
             "formatter": "file_formatter",
             "class": "logging.FileHandler",
-            "filename": "logs.errors.log",
+            "filename": "logs/errors.log",
             "level": "ERROR"
         },
         "info_file": {
             "formatter": "file_formatter",
             "class": "logging.FileHandler",
-            "filename": "logs.info.log",
-            "level": "DEBUG" if cfg.DEBUG else "INFO"
+            "filename": "logs/info.log",
+            "level": "DEBUG" if settings.DEBUG else "INFO"
         }
     },
     "formatters": {
@@ -38,5 +39,3 @@ LOG_CONFIG = {
         }
     }
 }
-
-config.dictConfig(LOG_CONFIG)

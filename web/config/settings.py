@@ -38,6 +38,10 @@ else:
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(';')
 
+import logs
+
+LOGGING = logs.LOG_CONFIG
+
 
 # Application definition
 
