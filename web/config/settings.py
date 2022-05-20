@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'django_filters',
     'web.kwfinder'
 ]
 
@@ -144,7 +146,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'web', 'static')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # media files
-MEDIA_ROOT = os.path.join(BASE_DIR, '')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'web')
 MEDIA_URL = os.getenv('MEDIA_URL')
 
 

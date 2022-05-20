@@ -141,3 +141,6 @@ driver/chromedriver
 
 # mac files
 *.DS_Store
+
+# root static
+web/static/*
