@@ -1,4 +1,4 @@
-# from django.shortcuts import render
+from django.shortcuts import render
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -64,3 +64,8 @@ class DailyAggregatedDataView(ReadOnlyModelViewSet):
             queryset = queryset.filter(date__lte=end_date)
 
         return queryset
+
+
+def dailyAnalytics(request):
+    """ View for showing daily analytics page """
+    return render(request, 'kwfinder/daily_stats.html')

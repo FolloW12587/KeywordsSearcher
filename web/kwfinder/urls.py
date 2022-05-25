@@ -1,17 +1,22 @@
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
 from . import views
 
 
+router = DefaultRouter()
+router.register('apps', views.AppView, basename='apps')
+router.register('app_types', views.AppTypeView, basename='app_types')
+router.register('app_platforms', views.AppPlatformView,
+                basename='app_platforms')
+router.register('keywords', views.KeywordView, basename='keywords')
+router.register('daily_data', views.DailyAggregatedDataView,
+                basename='daily_data')
+# router.register('', views.AppView, basename='apps')
+
 urlpatterns = [
-    path('apps/',
-         views.AppView.as_view({'get': 'list'}), name='apps'),
-    path('app_types/',
-         views.AppTypeView.as_view({'get': 'list'}), name='app_types'),
-     path('app_platforms/',
-         views.AppPlatformView.as_view({'get': 'list'}), name='app_platforms'),
-     path('keywords/',
-         views.KeywordView.as_view({'get': 'list'}), name='keywords'),
-     path('daily_data/',
-         views.DailyAggregatedDataView.as_view({'get': 'list'}), name='daily_data'),
+    path('',
+         views.dailyAnalytics,
+         name='analytics'),
 ]
+urlpatterns += router.urls
