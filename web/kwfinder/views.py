@@ -20,9 +20,11 @@ class AppView(ReadOnlyModelViewSet):
     queryset = models.App.objects.all()
     serializer_class = serializers.AppSerializer
     permission_classes = [IsAuthenticated, ]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, ]
+    filter_backends = [DjangoFilterBackend,
+                       filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['app_type__id', 'platform__id', ]
     search_fields = ['name', ]
+    ordering_fields = ['name', ]
 
 
 class AppPlatformView(ReadOnlyModelViewSet):
@@ -50,20 +52,14 @@ class DailyAggregatedDataView(ReadOnlyModelViewSet):
     queryset = models.DailyAggregatedPositionData.objects.all()
     serializer_class = serializers.DailyAggregatedPositionDataSerializer
     permission_classes = [IsAuthenticated, ]
-    filter_backends = [DjangoFilterBackend, ]
-    filterset_fields = ['keyword__id', 'app__id', ]
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        start_date = self.request.query_params.get("start_date")
-        if start_date:
-            queryset = queryset.filter(date__gte=start_date)
-
-        end_date = self.request.query_params.get("end_date")
-        if end_date:
-            queryset = queryset.filter(date__lte=end_date)
-
-        return queryset
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, ]
+    # filterset_fields = ['keyword__id', 'app__id', ]
+    filterset_fields = {
+        'keyword__id': ['exact', ],
+        'app__id': ['exact', ],
+        'date': ['exact', 'gte', 'lte']
+    }
+    ordering_fields = ['date', ]
 
 
 def dailyAnalytics(request):

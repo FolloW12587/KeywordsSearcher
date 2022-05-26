@@ -35,7 +35,7 @@ class AppPositionScriptRunAdmin(admin.ModelAdmin):
 @admin.register(models.AppPositionScriptRunData)
 class AppPositionScriptRunDataAdmin(admin.ModelAdmin):
     list_display = ('id', 'run', 'keyword', 'app', 'position')
-    search_fields = ('keyword',)
+    search_fields = ('keyword__name',)
     list_filter = ('run', 'app')
 
 

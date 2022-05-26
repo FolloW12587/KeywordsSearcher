@@ -534,7 +534,7 @@ function showStats() {
 
 async function getStats(app_id, keyword_id) {
     const { from, to } = getDateRange();
-    let url = `/daily_data/?app__id=${app_id}&keyword__id=${keyword_id}&strat_date=${from.format("yyyy-mm-dd")}&end_date=${to.format("yyyy-mm-dd")}`;
+    let url = `/daily_data/?app__id=${app_id}&keyword__id=${keyword_id}&date__gte=${from.format("yyyy-mm-dd")}&date__lte=${to.format("yyyy-mm-dd")}&ordering=date`;
     let results = [];
     while (true) {
         let response = await fetch(url)

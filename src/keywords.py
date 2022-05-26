@@ -60,7 +60,7 @@ def __keywordsThreadFunc(keywords: List[models.Keyword],
             except BadDriverException as e:
                 logger.exception(e)
                 break
-            
+
             except Exception as e:
                 logger.exception(e)
                 break
@@ -93,9 +93,9 @@ def __getKeywordStatistics(keyword: models.Keyword, driver: webdriver.Chrome,
     """ Returns statistic for `keyword`. It is dict. The key is app link, 
     value is position in google play store (0 if not exists). """
     links = getGoogleLinks(
-        keyword=keyword.name, 
+        keyword=keyword.name,
         driver=driver,
-        thread_num=thread_num, 
+        thread_num=thread_num,
         strore_attributes=keyword.app_type.google_store_link_attributes)
     apps = __getApps(app_type=keyword.app_type)
 
@@ -131,31 +131,33 @@ def mergeKeywordStatsForDays(day: str, app_type_id: int):
     keywords = models.Keyword.objects.filter(app_type=app_type).all()
     apps = models.App.objects.filter(app_type=app_type).all()
 
+    data = []
     for keyword in keywords:
         for app in apps:
-            __aggregateKeywordStats(
+            data.append(__aggregateKeywordStats(
                 day=day,
                 app=app,
                 keyword=keyword,
-                runs=runs)
+                runs=runs))
+
+    models.DailyAggregatedPositionData.objects.bulk_create(data)
 
 
 def __aggregateKeywordStats(day: str, app: models.App,
                             keyword: models.Keyword,
-                            runs: List[models.AppPositionScriptRun]):
+                            runs: List[models.AppPositionScriptRun]) -> models.DailyAggregatedPositionData:
     """ Aggregates stats for given `day` for an `app` and `keyword` 
-    in bunch of `runs` """
+    in bunch of `runs` and returns DailyAggregatedPositionData instance """
     data = models.AppPositionScriptRunData.objects.filter(
         keyword=keyword, run__in=runs, app=app).all()
     position = __getMaxRepeatedElementOrAvg([d.position for d in data])
 
-    aggData = models.DailyAggregatedPositionData(
+    return models.DailyAggregatedPositionData(
         date=datetime.strptime(day, r'%Y-%m-%d').date(),
         keyword=keyword,
         app=app,
         position=position
     )
-    aggData.save()
 
 
 def __getMaxRepeatedElementOrAvg(l: List[int]) -> int:
