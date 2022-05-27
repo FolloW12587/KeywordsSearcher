@@ -1,12 +1,13 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 import logging
+from time import sleep
 from selenium import webdriver
 from typing import List
 
 # import settings
 from django.conf import settings
-from exceptions import BadDriverException
+from exceptions import BadDriverException, LinksNotFound
 from src import driver_module
 from src.links import getGoogleLinks
 from web.kwfinder import models
@@ -34,8 +35,28 @@ def getKeywordsStats(app_type_id: int):
     script_run.save()
 
 
-def __keywordsThreadFunc(keywords: List[models.Keyword],
-                         run: models.AppPositionScriptRun, thread_num: int = 0):
+def getKeywordsStatsSelenium(app_type_id: int):
+    """ Gets all keywords statistics for app_type with given `app_type_id`
+    by threads and write it to file """
+    logger.info("Getting keywords statistics.")
+
+    app_type = models.AppType.objects.get(id=app_type_id)
+    script_run = models.AppPositionScriptRun(app_type=app_type)
+    script_run.save()
+    splitted_keywords = __getSplittedKeywords(app_type=app_type)
+    with ThreadPoolExecutor(settings.NUMBER_OF_THREADS) as executor:
+        executor.map(
+            __keywordsThreadFuncSel,
+            splitted_keywords,
+            [script_run, ] * settings.NUMBER_OF_THREADS,
+            range(settings.NUMBER_OF_THREADS)
+        )
+    script_run.ended_at = datetime.now()
+    script_run.save()
+
+
+def __keywordsThreadFuncSel(keywords: List[models.Keyword],
+                            run: models.AppPositionScriptRun, thread_num: int = 0):
     """ Func to get all stata for given `keywords list` 
     and write it to db for given `run` """
     logger.info(f"Started thread {thread_num} of run with id {run.id}")
@@ -48,16 +69,16 @@ def __keywordsThreadFunc(keywords: List[models.Keyword],
                 f"Thread {thread_num} - completed {i} out of {len(keywords)}")
 
         try:
-            __getKeywordStatistics(
+            __getKeywordStatisticsSel(
                 keyword=keyword, driver=driver, thread_num=thread_num, run=run)
-        except BadDriverException as e:
+        except (BadDriverException, LinksNotFound) as e:
             logger.warning(e)
             logger.info("Reloading driver")
             driver = driver_module.getWebDriver()
             try:
-                __getKeywordStatistics(
+                __getKeywordStatisticsSel(
                     keyword=keyword, driver=driver, thread_num=thread_num, run=run)
-            except BadDriverException as e:
+            except (BadDriverException, LinksNotFound) as e:
                 logger.exception(e)
                 break
 
@@ -74,6 +95,44 @@ def __keywordsThreadFunc(keywords: List[models.Keyword],
     driver.close()
 
 
+def __keywordsThreadFunc(keywords: List[models.Keyword],
+                         run: models.AppPositionScriptRun, thread_num: int = 0):
+    """ Func to get all stata for given `keywords list` 
+    and write it to db for given `run` """
+    logger.info(f"Started thread {thread_num} of run with id {run.id}")
+
+    for i, keyword in enumerate(keywords):
+        if i % 10 == 0:
+            logger.info(
+                f"Thread {thread_num} - completed {i} out of {len(keywords)}")
+
+        sleep(settings.TIME_TO_SLEEP / 2)
+
+        try:
+            __getKeywordStatistics(
+                keyword=keyword, thread_num=thread_num, run=run)
+        except LinksNotFound as e:
+            logger.warning(e)
+            sleep(settings.TIME_TO_SLEEP * 2)
+            try:
+                __getKeywordStatistics(
+                    keyword=keyword, thread_num=thread_num, run=run)
+            except LinksNotFound as e:
+                logger.exception(e)
+                break
+
+            except Exception as e:
+                logger.exception(e)
+                break
+
+        except Exception as e:
+            logger.exception(e)
+            break
+        # break
+
+    logger.info(f"Finished thread {thread_num}")
+
+
 def __getKeywords(app_type: models.AppType) -> List[models.Keyword]:
     """ Returns list of keywords of given app type. """
     return list(models.Keyword.objects.filter(app_type=app_type).all())
@@ -88,13 +147,38 @@ def __getSplittedKeywords(app_type: models.AppType) -> List[List[models.Keyword]
             for i in range(settings.NUMBER_OF_THREADS)]
 
 
-def __getKeywordStatistics(keyword: models.Keyword, driver: webdriver.Chrome,
-                           thread_num: int, run: models.AppPositionScriptRun):
+def __getKeywordStatisticsSel(keyword: models.Keyword, driver: webdriver.Chrome,
+                              thread_num: int, run: models.AppPositionScriptRun):
     """ Returns statistic for `keyword`. It is dict. The key is app link, 
     value is position in google play store (0 if not exists). """
     links = getGoogleLinks(
         keyword=keyword.name,
         driver=driver,
+        thread_num=thread_num,
+        strore_attributes=keyword.app_type.google_store_link_attributes)
+    apps = __getApps(app_type=keyword.app_type)
+
+    for app in apps:
+        try:
+            position = links.index(app.link) + 1
+        except ValueError:
+            position = 0
+
+        data = models.AppPositionScriptRunData(
+            run=run,
+            keyword=keyword,
+            app=app,
+            position=position
+        )
+        data.save()
+
+
+def __getKeywordStatistics(keyword: models.Keyword, thread_num: int,
+                           run: models.AppPositionScriptRun):
+    """ Returns statistic for `keyword`. It is dict. The key is app link, 
+    value is position in google play store (0 if not exists). """
+    links = getGoogleLinks(
+        keyword=keyword.name,
         thread_num=thread_num,
         strore_attributes=keyword.app_type.google_store_link_attributes)
     apps = __getApps(app_type=keyword.app_type)
@@ -166,6 +250,8 @@ def __getMaxRepeatedElementOrAvg(l: List[int]) -> int:
 
     s = set(l)
     if len(l) == len(s):
+        if 0 in l:
+            return int(sum(l) / (len(l) - 1))
         return int(sum(l) / len(l))
 
     return max(s, key=l.count)

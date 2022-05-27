@@ -1,7 +1,7 @@
 import logging
 from django.core.management.base import BaseCommand, CommandParser
 
-from src.keywords import getKeywordsStats
+from src.keywords import getKeywordsStatsSelenium
 from web.kwfinder import models
 
 
@@ -26,4 +26,4 @@ class Command(BaseCommand):
             logger.exception(e)
             return
 
-        getKeywordsStats(app_type_id=options['app_type_id'])
+        getKeywordsStatsSelenium(app_type_id=options['app_type_id'])

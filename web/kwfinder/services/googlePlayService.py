@@ -1,5 +1,4 @@
 import logging
-from platform import platform
 from time import sleep
 from typing import List
 from selenium import webdriver
@@ -94,5 +93,5 @@ class GooglePlayService:
 
     def getAllAppLinks(self) -> List[str]:
         """ Retruns list of all apps' links from the opened store page. """
-        links = self.driver.find_elements_by_class_name("poRVub")
+        links = self.driver.find_elements_by_class_name("Gy4nib")
         return [x.get_attribute('href') for x in links]

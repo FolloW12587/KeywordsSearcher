@@ -3,20 +3,21 @@ import logging
 from selenium import webdriver
 from typing import List
 
-from exceptions import BadDriverException
+from exceptions import BadDriverException, LinksNotFound
 from web.kwfinder.services.googlePlayService import GooglePlayService
+from web.kwfinder.services.googlePlayServicePlain import GooglePlayService as GooglePlayServicePlain
 from web.kwfinder import models
 
 logger = logging.getLogger(__name__)
 
 
-def getGoogleLinks(keyword: str, driver: webdriver.Chrome, 
-                   strore_attributes: str, thread_num: int = 0) -> List[str]:
+def getGoogleLinksSel(keyword: str, driver: webdriver.Chrome,
+                      strore_attributes: str, thread_num: int = 0) -> List[str]:
     """ Uploads and returns links by the given `keyword`. """
 
     gPS = GooglePlayService(
         driver=driver, base_url=__getGoogleBaseUrl(), thread_num=thread_num)
-    if not gPS.openStoreSearchPage(keyword=keyword, 
+    if not gPS.openStoreSearchPage(keyword=keyword,
                                    attributes=strore_attributes):
         raise BadDriverException(
             "Bad sequence of requests. Driver needs to be reloaded")
@@ -24,6 +25,24 @@ def getGoogleLinks(keyword: str, driver: webdriver.Chrome,
         raise BadDriverException(
             "Bad sequence of requests. Driver needs to be reloaded")
     links = gPS.getAllAppLinks()
+    logger.info(f"{len(links)} links loaded in thread {thread_num}")
+    if len(links) == 0:
+        raise LinksNotFound(
+            "Didn't find any links. Driver needs to be reloaded")
+    return links
+
+
+def getGoogleLinks(keyword: str, strore_attributes: str,
+                   thread_num: int = 0) -> List[str]:
+    """ Uploads and returns links by the given `keyword`. """
+    gPS = GooglePlayServicePlain(
+        base_url=__getGoogleBaseUrl(), thread_num=thread_num)
+
+    links = gPS.getAllAppLinks(keyword=keyword, attributes=strore_attributes)
+    logger.info(f"{len(links)} links loaded in thread {thread_num}")
+    if len(links) == 0:
+        raise LinksNotFound("Didn't find any links. Try angain")
+
     return links
 
 
