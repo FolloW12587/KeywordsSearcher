@@ -1,7 +1,8 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 from rest_framework.permissions import IsAuthenticated
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
 from . import models, serializers
@@ -62,6 +63,7 @@ class DailyAggregatedDataView(ReadOnlyModelViewSet):
     ordering_fields = ['date', ]
 
 
+@login_required
 def dailyAnalytics(request):
     """ View for showing daily analytics page """
     return render(request, 'kwfinder/daily_stats.html')
