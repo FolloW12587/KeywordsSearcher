@@ -1,0 +1,79 @@
+{% extends "kwfinder/base.html" %}
+{% load static %}
+{% block title %}Daily stats{% endblock %}
+{% block header %}
+<div class="header--title">Analytics for apps</div>
+<script type="module" src="{% static "kwfinder/js/datepicker.js" %}"></script>
+<script type="module" src="{% static "kwfinder/js/daily_stats.js" %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="button settings--opener settings--opener__active">
+  <div class="button--title">
+    Открыть/Скрыть настройки
+  </div>
+</div>
+<div class="settings">
+  <div class="settings_pickers">
+    <div class="date_range">
+      <div class="date_range--label">Диапазон дат: </div>
+      <div class="date_range--picker"></div>
+    </div>
+    <div class="platform">
+      <div class="platform_chosen">
+        <div class="platform_chosen--label">Платформа: </div>
+        <div class="button platform_picker--opener">
+          <div class="button--title">
+            Не выбрано
+            <i class="arrow down"></i>
+          </div>
+        </div>
+      </div>
+      <ul class="platform_picker platform_picker__hidden dropdown">
+      </ul>
+    </div>
+    <div class="app_type">
+      <div class="app_type_chosen">
+        <div class="app_type_chosen--label">Тип приложения: </div>
+        <div class="button app_type_picker--opener">
+          <div class="button--title">
+            Не выбрано
+            <i class="arrow down"></i>
+          </div>
+        </div>
+      </div>
+      <ul class="app_type_picker app_type_picker__hidden dropdown"></ul>
+    </div>
+  </div>
+  <div class="button apply_settings">
+    <div class="button--title">Принять настройки</div>
+  </div>
+</div>
+<div class="params_pickers">
+  <div class="apps">
+    <div class="apps--label">Выберите приложения:</div>
+    <div class="app_chosen_list">
+    </div>
+    <input type="text" class="app_finder">
+    <ul class="app_list app_list__hidden dropdown">
+      <li tabIndex="-1" class="dropdown--element"><img class="spinner" src="{% static "kwfinder/img/spinner.gif" %}" style="margin: 0 auto;"></li>
+    </ul>
+  </div>
+  <div class="keywords">
+    <div class="keywords--label">Выберите ключевые слова:</div>
+    <div class="keyword_chosen_list">
+    </div>
+    <input type="text" class="keyword_finder">
+    <ul class="keyword_list keyword_list__hidden dropdown">
+      <li tabIndex="-1" class="dropdown--element"><img class="spinner" src="{% static "kwfinder/img/spinner.gif" %}" style="margin: 0 auto;"></li>
+    </ul>
+  </div>
+</div>
+<div class="button show_data">
+  <div class="button--title">Показать</div>
+</div>
+<div>
+  <canvas id="myChart"></canvas>
+</div>
+{% endblock %}

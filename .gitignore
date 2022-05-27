@@ -130,7 +130,6 @@ dmypy.json
 .pyre/
 
 # output info
-*.html
 *.csv
 
 # web drivers 
