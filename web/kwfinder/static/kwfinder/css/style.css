@@ -708,6 +708,11 @@ code {
     margin: 0 15px;
 }
 
+.button__disabled {
+    background-color: #93ced5;
+    cursor: default;
+}
+
 .settings--opener__active {
     background-color: #ff0000;
 }
@@ -805,6 +810,16 @@ code {
 .dropdown--element:hover {
     background: #f8f8f8;
     border: solid 1px #ebebed;
+}
+
+.dropdown--element__disabled {
+    color: #b7b7b7;
+    cursor: default;
+}
+
+.dropdown--element:hover {
+    border: solid 1px #fff;
+    background: #fff;
 }
 
 

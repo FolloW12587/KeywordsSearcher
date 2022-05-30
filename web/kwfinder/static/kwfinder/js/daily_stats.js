@@ -288,15 +288,16 @@ function updateAppsPicker() {
     let s = "";
     for (let i in params.apps.list) {
         let app = params.apps.list[i];
-        if (isObjWithIdInList(app.id, params.apps.chosen)) {
-            continue;
-        }
-
         if (filter_value != "" && !app.name.toLowerCase().includes(filter_value)) {
             continue;
         }
+        
+        let disabled_str = "";
+        if (isObjWithIdInList(app.id, params.apps.chosen)) {
+            disabled_str = " dropdown--element__disabled";
+        }
 
-        s += `<li tabIndex="-1" class="app_list--element dropdown--element" data-id="${app.id}">${app.name}</li>`;
+        s += `<li tabIndex="-1" class="app_list--element dropdown--element${disabled_str}" data-id="${app.id}">${app.name}</li>`;
     }
     appListObj.innerHTML = s;
 
@@ -323,6 +324,9 @@ function updateAppsChosenList() {
 
 function chooseApp(e) {
     let appObj = e.currentTarget;
+    if (appObj.classList.contains("dropdown--element__disabled"))
+        return;
+
     let app_id = appObj.getAttribute('data-id');
 
     let app = isObjWithIdInList(app_id, params.apps.list);
@@ -342,8 +346,12 @@ function removeApp(e) {
     updateAppsController();
 }
 
-function toggleAppSearch() {
+function toggleAppSearch(e) {
     let appList = document.getElementsByClassName("app_list")[0];
+    if (appList.contains(e.relatedTarget)) {
+        let appInput = document.getElementsByClassName("app_finder")[0];
+        appInput.focus();
+    }
 
     if (appList.classList.contains("app_list__hidden")) {
         appList.classList.remove("app_list__hidden");
@@ -399,11 +407,12 @@ function updateKeywordsPicker() {
 
     for (let i in params.keywords.list) {
         let keyword = params.keywords.list[i];
+        let disabled_str = "";
         if (isObjWithIdInList(keyword.id, params.keywords.chosen)) {
-            continue;
+            disabled_str = " dropdown--element__disabled";
         }
 
-        s += `<li tabIndex="-1" class="keyword_list--element dropdown--element" data-id="${keyword.id}">${keyword.name}</li>`;
+        s += `<li tabIndex="-1" class="keyword_list--element dropdown--element${disabled_str}" data-id="${keyword.id}">${keyword.name}</li>`;
     }
 
     if (params.keywords.next !== null) {
@@ -447,6 +456,9 @@ function updateKeywordsChosenList() {
 
 function chooseKeyword(e) {
     let keywordObj = e.currentTarget;
+    if (keywordObj.classList.contains("dropdown--element__disabled"))
+        return;
+
     let keyword_id = keywordObj.getAttribute('data-id');
 
     let keyword = isObjWithIdInList(keyword_id, params.keywords.list);
@@ -511,10 +523,18 @@ function getDateRange() {
 // Stata controller
 
 function showStats() {
+    if (params.stata.isLoading)
+        return;
+
     if (params.apps.chosen.length == 0 || params.keywords.chosen.length == 0) {
         alert("Вы должны выбрать хотя бы 1 приложение и ключевое слово!");
         return;
     }
+
+    let showData = document.getElementsByClassName("show_data")[0];
+    if (!showData.classList.contains('button__disabled'))
+        showData.classList.add('button__disabled');
+
     params.stata.list = []
     params.stata.isLoading = true;
     params.stata.states = {};
@@ -556,6 +576,9 @@ async function getStats(app_id, keyword_id) {
 
     if (isAllDataLoaded()) {
         params.stata.isLoading = false;
+        let showData = document.getElementsByClassName("show_data")[0];
+        if (showData.classList.contains('button__disabled'))
+            showData.classList.remove('button__disabled');
         setupCharts()
     }
 }
