@@ -764,7 +764,8 @@ code {
 .app_type_chosen--label,
 .apps--label,
 .keywords--label,
-.date_range--label {
+.date_range--label,
+.filter_keywords--label {
     font-size: 18px;
     display: flex;
     align-items: center;
