@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters
 
@@ -44,6 +44,22 @@ class KeywordView(ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, ]
     filterset_fields = ['app_type__id', ]
     search_fields = ['name', ]
+
+    def get_queryset(self):
+        has_data = self.request.query_params.get('has_data')
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+        if has_data and (has_data == '1') and start_date and end_date:
+            filter_ids = models.DailyAggregatedPositionData.objects.filter(
+                date__lte=end_date, date__gte=start_date).exclude(position=0)
+
+            filter_ids = filter_ids.values_list(
+                'keyword', flat=True).distinct()
+
+            self.queryset = models.Keyword.objects.filter(
+                id__in=list(filter_ids))
+
+        return super().get_queryset()
 
 
 class DailyAggregatedDataView(ReadOnlyModelViewSet):

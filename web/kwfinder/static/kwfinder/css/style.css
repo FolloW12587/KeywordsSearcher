@@ -738,7 +738,8 @@ code {
 .app_type__hidden,
 .app_type_picker__hidden,
 .app_list__hidden,
-.keyword_list__hidden {
+.keyword_list__hidden,
+.filter_keywords_picker__hidden {
     display: none;
 }
 
@@ -749,6 +750,10 @@ code {
 .platform,
 .app_type,
 .date_range,
+.filter_keywords {
+    width: 25%;
+    margin: 10px;
+}
 .apps,
 .keywords {
     width: 30%;

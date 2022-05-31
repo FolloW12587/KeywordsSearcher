@@ -20,7 +20,8 @@ let params = {
         next: null,
         previous: null,
         isLoading: false,
-        limit: 10
+        limit: 10,
+        filter: ""
     },
     stata: {
         list: [],
@@ -56,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     getPlatforms();
     getAppTypes();
+    installKeywordsFilterEvents();
 });
 
 function toggleSettings() {
@@ -235,25 +237,76 @@ function appTypeSelected(e) {
     }
 }
 
+// keywords filter controller
+
+function installKeywordsFilterEvents() {
+    let filter_keywords_picker = document.getElementsByClassName("filter_keywords_picker")[0];
+    let filter_keywords_picker_opener = document.getElementsByClassName("filter_keywords_picker--opener")[0];
+
+    filter_keywords_picker_opener.addEventListener("click", toggleKeywordsFilterPicker);
+    let platforms = filter_keywords_picker.getElementsByClassName("filter_keywords_picker--element");
+    for (let i = 0; platforms.length > i; i++) {
+        platforms[i].addEventListener("click", KeywordsFilterSelected);
+    }
+}
+
+function toggleKeywordsFilterPicker() {
+    let filter_keywords_picker_opener = document.getElementsByClassName("filter_keywords_picker--opener")[0];
+    let arrow = filter_keywords_picker_opener.getElementsByClassName("arrow")[0];
+    let filter_keywords_picker = document.getElementsByClassName("filter_keywords_picker")[0];
+
+    if (filter_keywords_picker_opener.classList.contains("filter_keywords_picker--opener__active")) {
+        if (arrow.classList.contains("up")) {
+            arrow.classList.remove("up");
+        }
+        if (!arrow.classList.contains("down")) {
+            arrow.classList.add("down");
+        }
+        filter_keywords_picker_opener.classList.remove('filter_keywords_picker--opener__active');
+
+        if (!filter_keywords_picker.classList.contains("filter_keywords_picker__hidden")) {
+            filter_keywords_picker.classList.add("filter_keywords_picker__hidden");
+        }
+    } else {
+        if (arrow.classList.contains("down")) {
+            arrow.classList.remove("down");
+        }
+        if (!arrow.classList.contains("up")) {
+            arrow.classList.add("up");
+        }
+        filter_keywords_picker_opener.classList.add('filter_keywords_picker--opener__active');
+
+        filter_keywords_picker.classList.remove("filter_keywords_picker__hidden");
+    }
+}
+
+function KeywordsFilterSelected(e) {
+    let selected = e.currentTarget;
+    let value = selected.getAttribute('data-value');
+
+    params.keywords.filter = value;
+    let filter_keywords_picker_opener = document.getElementsByClassName("filter_keywords_picker--opener")[0];
+    filter_keywords_picker_opener.innerHTML = `<div class="button--title">${selected.innerHTML} <i class="arrow down"></i></div>`;
+    toggleKeywordsFilterPicker()
+}
+
+// apply settings 
+
 function applySettings() {
     if (params.platform.chosen === null || params.app_type.chosen === null) {
         alert("Сначала выберите платформу и тип приложения");
         return;
     }
 
-    params.apps = {
-        list: [],
-        chosen: []
-    };
-    params.keywords = {
-        list: [],
-        chosen: [],
-        count: 0,
-        next: null,
-        previous: null,
-        isLoading: false,
-        limit: 10
-    };
+    params.apps.list = [];
+    params.apps.chosen = [];
+
+    params.keywords.list = [];
+    params.keywords.chosen = [];
+    params.keywords.count = 0;
+    params.keywords.next = null;
+    params.keywords.previous = null;
+    params.keywords.isLoading = false;
 
     toggleSettings()
 
@@ -291,7 +344,7 @@ function updateAppsPicker() {
         if (filter_value != "" && !app.name.toLowerCase().includes(filter_value)) {
             continue;
         }
-        
+
         let disabled_str = "";
         if (isObjWithIdInList(app.id, params.apps.chosen)) {
             disabled_str = " dropdown--element__disabled";
@@ -369,8 +422,9 @@ function inputAppSearch() {
 
 
 async function getKeywords(url) {
+    const { from, to } = getDateRange();
     if (url === undefined) {
-        url = `/keywords/?limit=${params.keywords.limit}&app_type__id=${params.app_type.chosen.id}`;
+        url = `/keywords/?has_data${params.keywords.filter}&start_date=${from.format("yyyy-mm-dd")}&end_date=${to.format("yyyy-mm-dd")}&limit=${params.keywords.limit}&app_type__id=${params.app_type.chosen.id}`;
     }
     params.keywords.isLoading = true;
     updateAppsController();
@@ -493,7 +547,8 @@ function toggleKeywordSearch(e) {
 }
 
 function inputKeywordSearch() {
-    let url = `/keywords/?limit=${params.keywords.limit}&app_type__id=${params.app_type.chosen.id}`;
+    const { from, to } = getDateRange();
+    let url = `/keywords/?has_data${params.keywords.filter}&start_date=${from.format("yyyy-mm-dd")}&end_date=${to.format("yyyy-mm-dd")}&limit=${params.keywords.limit}&app_type__id=${params.app_type.chosen.id}`;
 
     let keywordInput = document.getElementsByClassName("keyword_finder")[0];
     if (keywordInput.value != "") {

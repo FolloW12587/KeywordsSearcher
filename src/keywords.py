@@ -5,7 +5,6 @@ from time import sleep
 from selenium import webdriver
 from typing import List
 
-# import settings
 from django.conf import settings
 from exceptions import BadDriverException, LinksNotFound
 from src import driver_module
