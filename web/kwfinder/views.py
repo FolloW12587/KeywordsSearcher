@@ -53,6 +53,11 @@ class KeywordView(ReadOnlyModelViewSet):
             filter_ids = models.DailyAggregatedPositionData.objects.filter(
                 date__lte=end_date, date__gte=start_date).exclude(position=0)
 
+            data_app_ids = self.request.query_params.get('data_app_ids')
+            if data_app_ids:
+                filter_ids = filter_ids.filter(
+                    app__id__in=data_app_ids.split(','))
+
             filter_ids = filter_ids.values_list(
                 'keyword', flat=True).distinct()
 

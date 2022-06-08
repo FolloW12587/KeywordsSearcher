@@ -388,6 +388,9 @@ function chooseApp(e) {
         return;
     }
     params.apps.chosen.push(app);
+    if (params.keywords.filter == '2'){
+        getKeywords();
+    }
     updateAppsController();
 }
 
@@ -396,6 +399,9 @@ function removeApp(e) {
     let app_id = appObj.getAttribute('data-id');
 
     params.apps.chosen = removeObjFromListById(app_id, params.apps.chosen);
+    if (params.keywords.filter == '2'){
+        getKeywords();
+    }
     updateAppsController();
 }
 
@@ -424,7 +430,26 @@ function inputAppSearch() {
 async function getKeywords(url) {
     const { from, to } = getDateRange();
     if (url === undefined) {
-        url = `/keywords/?has_data${params.keywords.filter}&start_date=${from.format("yyyy-mm-dd")}&end_date=${to.format("yyyy-mm-dd")}&limit=${params.keywords.limit}&app_type__id=${params.app_type.chosen.id}`;
+        let has_data = '';
+        let data_app_ids = '';
+        if (params.keywords.filter == '1' || params.keywords.filter == '2'){
+            has_data = '1';
+        }
+
+        if (params.keywords.filter == '2'){
+            if (params.apps.chosen.length == 0){
+                data_app_ids = '-1';
+            }
+
+            for (let i in params.apps.chosen){
+                let app = params.apps.chosen[i];
+                data_app_ids += `${app.id}`;
+
+                if (i != params.apps.chosen.length - 1)
+                    data_app_ids += ',';
+            }
+        }
+        url = `/keywords/?has_data=${has_data}&data_app_ids=${data_app_ids}&start_date=${from.format("yyyy-mm-dd")}&end_date=${to.format("yyyy-mm-dd")}&limit=${params.keywords.limit}&app_type__id=${params.app_type.chosen.id}`;
     }
     params.keywords.isLoading = true;
     updateAppsController();

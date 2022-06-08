@@ -723,13 +723,14 @@ code {
     padding: 10px;
 }
 
-.settings_pickers,
-.params_pickers {
+.settings_pickers {
     display: flex;
-    justify-content: space-around;
+    flex-wrap: wrap;
 }
 
 .params_pickers {
+    display: flex;
+    justify-content: space-around;
     padding: 10px;
 }
 
@@ -751,9 +752,10 @@ code {
 .app_type,
 .date_range,
 .filter_keywords {
-    width: 25%;
+    width: 31%;
     margin: 10px;
 }
+
 .apps,
 .keywords {
     width: 30%;
