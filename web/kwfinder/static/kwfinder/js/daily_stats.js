@@ -53,6 +53,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let showData = document.getElementsByClassName("show_data")[0];
     showData.addEventListener('click', showStats);
 
+    let offset_picker_slider = document.getElementsByClassName("offset_picker--slider")[0];
+    offset_picker_slider.addEventListener("mouseup", inputSlider);
+
     // setupCharts();
 
     getPlatforms();
@@ -598,6 +601,16 @@ function installDatepicker() {
 
 function getDateRange() {
     return datepicker.date;
+}
+
+// Offset controller
+
+function inputSlider() {
+    let ov = document.getElementsByClassName("offset--value")[0];
+    ov.innerHTML = this.value;
+
+    let main = document.getElementsByClassName('main')[0];
+    main.style.width = `${this.value}%`;
 }
 
 // Stata controller
