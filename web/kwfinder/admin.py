@@ -19,12 +19,14 @@ class AppTypeAdmin(admin.ModelAdmin):
 @admin.register(models.App)
 class AppAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'platform', 'app_type')
+    list_select_related = ('platform', 'app_type')
     search_fields = ('name',)
 
 
 @admin.register(models.Keyword)
 class KeywordAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'app_type')
+    list_select_related = ('app_type',)
     search_fields = ('name',)
     list_filter = ('app_type',)
 
@@ -69,12 +71,14 @@ class KeywordAdmin(admin.ModelAdmin):
 @admin.register(models.AppPositionScriptRun)
 class AppPositionScriptRunAdmin(admin.ModelAdmin):
     list_display = ('id', 'app_type', 'started_at', 'ended_at')
+    list_select_related = ('app_type',)
     list_filter = ('app_type',)
 
 
 @admin.register(models.AppPositionScriptRunData)
 class AppPositionScriptRunDataAdmin(admin.ModelAdmin):
     list_display = ('id', 'run', 'keyword', 'app', 'position')
+    list_select_related = ('run', 'app', 'keyword')
     search_fields = ('keyword__name',)
     list_filter = ('run', 'app')
 
@@ -82,5 +86,6 @@ class AppPositionScriptRunDataAdmin(admin.ModelAdmin):
 @admin.register(models.DailyAggregatedPositionData)
 class DailyAggregatedPositionDataAdmin(admin.ModelAdmin):
     list_display = ('id', 'date', 'keyword', 'app', 'position')
+    list_select_related = ('app', 'keyword')
     search_fields = ('keyword__name',)
     list_filter = ('date', 'app')
