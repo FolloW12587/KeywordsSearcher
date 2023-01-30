@@ -27,7 +27,7 @@ class GooglePlayService:
             logger.exception(e)
             return []
 
-        parsed_html = BeautifulSoup(r.text)
+        parsed_html = BeautifulSoup(r.text, features="html.parser")
         main = parsed_html.find('a', class_='Qfxief')
         if main:
             l.append(urljoin(url, main['href']))

@@ -44,6 +44,7 @@ class App(models.Model):
         AppPlatform, verbose_name="Платформа", on_delete=models.CASCADE)
     app_type = models.ForeignKey(
         AppType, verbose_name="Тип", on_delete=models.CASCADE)
+    is_active = models.BooleanField("Активно", default=True, blank=True)
 
     class Meta:
         verbose_name = "Приложение"
