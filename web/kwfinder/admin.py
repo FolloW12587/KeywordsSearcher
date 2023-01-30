@@ -18,9 +18,10 @@ class AppTypeAdmin(admin.ModelAdmin):
 
 @admin.register(models.App)
 class AppAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'platform', 'app_type')
+    list_display = ('id', 'name', 'platform', 'app_type', 'is_active')
     list_select_related = ('platform', 'app_type')
     search_fields = ('name',)
+    list_filter = ('is_active',)
 
 
 @admin.register(models.Keyword)
