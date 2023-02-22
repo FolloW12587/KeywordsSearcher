@@ -790,6 +790,7 @@ function graphClickEvent(event, array) {
 
     if (array.length == 1) {
         loadPositionData(array[0]);
+        return;
     }
 
     openKeywordPickerModal(array)
