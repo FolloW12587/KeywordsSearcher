@@ -46,14 +46,14 @@ class KeywordView(ReadOnlyModelViewSet):
     search_fields = ['name', ]
 
     def get_queryset(self):
-        has_data = self.request.query_params.get('has_data')
-        start_date = self.request.query_params.get('start_date')
-        end_date = self.request.query_params.get('end_date')
+        has_data = self.request.GET.get('has_data')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
         if has_data and (has_data == '1') and start_date and end_date:
             filter_ids = models.DailyAggregatedPositionData.objects.filter(
                 date__lte=end_date, date__gte=start_date).exclude(position=0)
 
-            data_app_ids = self.request.query_params.get('data_app_ids')
+            data_app_ids = self.request.GET.get('data_app_ids')
             if data_app_ids:
                 filter_ids = filter_ids.filter(
                     app__id__in=data_app_ids.split(','))
@@ -69,7 +69,7 @@ class KeywordView(ReadOnlyModelViewSet):
 
 class DailyAggregatedDataView(ReadOnlyModelViewSet):
     """ View for output daily aggregated data for the given date range.
-    `start_date` should be the start of the range and `end_date` is its end.
+    `date__gte` should be the start of the range and `date__lte` is its end.
     Also it has filters by `keyword__id` and `app__id` fields. """
     queryset = models.DailyAggregatedPositionData.objects.all()
     serializer_class = serializers.DailyAggregatedPositionDataSerializer
@@ -82,6 +82,27 @@ class DailyAggregatedDataView(ReadOnlyModelViewSet):
         'date': ['exact', 'gte', 'lte']
     }
     ordering_fields = ['date', ]
+
+
+class AppPositionScriptRunDataView(ReadOnlyModelViewSet):
+    queryset = models.AppPositionScriptRunData.objects.all()
+    serializer_class = serializers.AppPositionScriptRunDataSerializer
+    permission_classes = [IsAuthenticated, ]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, ]
+    filterset_fields = {
+        'keyword__id': ['exact', ],
+        'app__id': ['exact', ],
+        # 'date': ['exact', 'gte', 'lte']
+    }
+    ordering_fields = ['run__started_at', ]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        date = self.request.GET.get('date')
+        if date:
+            queryset = queryset.filter(
+                run__started_at__gte=f"{date} 00:00:00", run__started_at__lte=f"{date} 23:59:59")
+        return queryset
 
 
 @login_required

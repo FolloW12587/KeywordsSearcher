@@ -32,6 +32,9 @@ let params = {
     }
 }
 
+const closeModalButtons = document.querySelectorAll('[data-close-button]');
+const overlay = document.getElementById('overlay');
+
 document.addEventListener("DOMContentLoaded", () => {
     let settingsOpener = document.getElementsByClassName("settings--opener")[0];
     settingsOpener.addEventListener("click", toggleSettings);
@@ -56,6 +59,19 @@ document.addEventListener("DOMContentLoaded", () => {
     let offset_picker_slider = document.getElementsByClassName("offset_picker--slider")[0];
     offset_picker_slider.addEventListener("mouseup", inputSlider);
 
+    overlay.addEventListener('click', () => {
+        const modals = document.querySelectorAll('.modal.active')
+        modals.forEach(modal => {
+            closeModal(modal)
+        })
+    })
+
+    closeModalButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const modal = button.closest('.modal')
+            closeModal(modal)
+        })
+    })
     // setupCharts();
 
     getPlatforms();
@@ -78,6 +94,18 @@ function toggleSettings() {
             settingsObj.classList.remove('settings__hidden');
         }
     }
+}
+
+function closeModal(modal) {
+    if (modal == null) return
+    modal.classList.remove('active')
+    overlay.classList.remove('active')
+}
+
+function openModal(modal) {
+    if (modal == null) return
+    modal.classList.add('active')
+    overlay.classList.add('active')
 }
 
 // Platform controller
@@ -391,7 +419,7 @@ function chooseApp(e) {
         return;
     }
     params.apps.chosen.push(app);
-    if (params.keywords.filter == '2'){
+    if (params.keywords.filter == '2') {
         getKeywords();
     }
     updateAppsController();
@@ -402,7 +430,7 @@ function removeApp(e) {
     let app_id = appObj.getAttribute('data-id');
 
     params.apps.chosen = removeObjFromListById(app_id, params.apps.chosen);
-    if (params.keywords.filter == '2'){
+    if (params.keywords.filter == '2') {
         getKeywords();
     }
     updateAppsController();
@@ -435,16 +463,16 @@ async function getKeywords(url) {
     if (url === undefined) {
         let has_data = '';
         let data_app_ids = '';
-        if (params.keywords.filter == '1' || params.keywords.filter == '2'){
+        if (params.keywords.filter == '1' || params.keywords.filter == '2') {
             has_data = '1';
         }
 
-        if (params.keywords.filter == '2'){
-            if (params.apps.chosen.length == 0){
+        if (params.keywords.filter == '2') {
+            if (params.apps.chosen.length == 0) {
                 data_app_ids = '-1';
             }
 
-            for (let i in params.apps.chosen){
+            for (let i in params.apps.chosen) {
                 let app = params.apps.chosen[i];
                 data_app_ids += `${app.id}`;
 
@@ -680,7 +708,9 @@ function createDataSet(data, app_id, keyword_id) {
     let dataset = {
         label: `${isObjWithIdInList(app_id, params.apps.chosen).name} - ${isObjWithIdInList(keyword_id, params.keywords.chosen).name}`,
         borderColor: randomRGB(),
-        data: []
+        data: [],
+        app_id: app_id,
+        keyword_id: keyword_id
     }
     let label_i = 0;
     let data_i = 0;
@@ -738,7 +768,14 @@ function setupCharts() {
                     suggestedMin: 0,
                     reverse: true
                 }
-            }
+            },
+            // plugins: {
+            //     tooltip: {
+            //       // Tooltip will only receive click events
+            //       events: ['click']
+            //     }
+            // }
+            onClick: graphClickEvent,
         }
     };
 
@@ -746,6 +783,61 @@ function setupCharts() {
         document.getElementById('myChart'),
         config
     );
+}
+
+function graphClickEvent(event, array) {
+    if (array.length == 0) return;
+
+    if (array.length == 1) {
+        loadPositionData(array[0]);
+    }
+
+    openKeywordPickerModal(array)
+}
+
+function openKeywordPickerModal(array){
+    let modal = document.getElementById("modal-picker");
+    let modalBody = modal.getElementsByClassName("modal-body")[0];
+    modalBody.innerHTML = "";
+    openModal(modal);
+    array.forEach(input => {
+        let dataset = params.stata.list[input.datasetIndex];
+        let label = dataset.label;
+
+        let button = document.createElement("button");
+        button.innerHTML = label;
+        button.classList.add("keyword_picker_modal");
+        modalBody.appendChild(button);
+        button.addEventListener('click', () => {
+            closeModal(modal);
+            loadPositionData(input);
+        })
+    })
+}
+
+async function loadPositionData(input) {
+    let dataset = params.stata.list[input.datasetIndex];
+    let date = params.stata.labels[input.index];
+    console.log(dataset);
+    console.log(date);
+
+    let modal = document.getElementById("modal-keyword");
+    openModal(modal);
+    modal.getElementsByClassName("title")[0].innerHTML = dataset.label;
+
+    let url = `/position_data/?app__id=${dataset.app_id}&keyword__id=${dataset.keyword_id}&date=${date}&ordering=run__started_at`;
+    let response = await fetch(url)
+        .then((response) => {
+            return response.json();
+        });
+
+    let results = response.results;
+    let s = "";
+    for (var i = 0; i < results.length; i++) {
+        s += `<div>${results[i].datetime}: ${results[i].position}</div>`;
+    }
+
+    modal.getElementsByClassName("modal-body")[0].innerHTML = s;
 }
 
 // helpers

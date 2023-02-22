@@ -12,6 +12,8 @@ router.register('app_platforms', views.AppPlatformView,
 router.register('keywords', views.KeywordView, basename='keywords')
 router.register('daily_data', views.DailyAggregatedDataView,
                 basename='daily_data')
+router.register('position_data',
+                views.AppPositionScriptRunDataView, basename='position_data')
 # router.register('', views.AppView, basename='apps')
 
 urlpatterns = [

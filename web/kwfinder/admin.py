@@ -81,7 +81,7 @@ class AppPositionScriptRunDataAdmin(admin.ModelAdmin):
     list_display = ('id', 'run', 'keyword', 'app', 'position')
     list_select_related = ('run', 'app', 'keyword')
     search_fields = ('keyword__name',)
-    list_filter = ('run', 'app')
+    list_filter = ('run', 'app', 'keyword',)
 
 
 @admin.register(models.DailyAggregatedPositionData)

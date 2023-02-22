@@ -31,3 +31,11 @@ class DailyAggregatedPositionDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.DailyAggregatedPositionData
         fields = '__all__'
+
+
+class AppPositionScriptRunDataSerializer(serializers.ModelSerializer):
+    datetime = serializers.DateTimeField(source="run.started_at", format="%Y-%m-%d %H:%M:%S")
+
+    class Meta:
+        model = models.AppPositionScriptRunData
+        fields = '__all__'
