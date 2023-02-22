@@ -822,6 +822,8 @@ async function loadPositionData(input) {
     console.log(date);
 
     let modal = document.getElementById("modal-keyword");
+    let modalBody = modal.getElementsByClassName("modal-body")[0];
+    modalBody.innerHTML = '<img class="spinner" src="/static/kwfinder/img/spinner.gif" style="margin: 0 auto;">';
     openModal(modal);
     modal.getElementsByClassName("title")[0].innerHTML = dataset.label;
 
@@ -837,7 +839,7 @@ async function loadPositionData(input) {
         s += `<div>${results[i].datetime}: ${results[i].position}</div>`;
     }
 
-    modal.getElementsByClassName("modal-body")[0].innerHTML = s;
+    modalBody.innerHTML = s;
 }
 
 // helpers
