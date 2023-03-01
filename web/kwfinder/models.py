@@ -45,6 +45,11 @@ class App(models.Model):
     app_type = models.ForeignKey(
         AppType, verbose_name="Тип", on_delete=models.CASCADE)
     is_active = models.BooleanField("Активно", default=True, blank=True)
+    icon = models.ImageField("Иконка", upload_to="app_icons/", null=True, blank=True)
+
+    num = models.CharField("Номер", max_length=255, unique=True)
+    campaign_id = models.CharField(
+        "ID кампании в keitaro", max_length=255, unique=True)
 
     class Meta:
         verbose_name = "Приложение"

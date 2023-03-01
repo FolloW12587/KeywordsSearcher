@@ -36,7 +36,7 @@ if os.getenv("DEBUG") and os.getenv("DEBUG") == '1':
 else:
     DEBUG = False
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(';')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(';')
 
 import logs
 
@@ -54,7 +54,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'django_filters',
-    'web.kwfinder'
+    'web.kwfinder',
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
@@ -153,7 +154,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'web', 'static')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # media files
-MEDIA_ROOT = os.path.join(BASE_DIR, 'web')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'web', 'media')
 MEDIA_URL = os.getenv('MEDIA_URL')
 
 
