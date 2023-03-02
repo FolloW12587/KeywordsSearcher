@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 
 # Create your models here.
@@ -45,7 +46,8 @@ class App(models.Model):
     app_type = models.ForeignKey(
         AppType, verbose_name="Тип", on_delete=models.CASCADE)
     is_active = models.BooleanField("Активно", default=True, blank=True)
-    icon = models.ImageField("Иконка", upload_to="app_icons/", null=True, blank=True)
+    icon = models.ImageField(
+        "Иконка", upload_to="app_icons/", null=True, blank=True)
 
     num = models.CharField("Номер", max_length=255, unique=True)
     campaign_id = models.CharField(
@@ -130,3 +132,31 @@ class DailyAggregatedPositionData(models.Model):
 
     def __str__(self):
         return f"{self.keyword.name} - {self.app.name} - {self.position}"
+
+
+class KeitaroDailyAppData(models.Model):
+    """ Модель, описывающая данные из кейтаро по приложениям, агрегированные по дням """
+    id = models.AutoField("id", primary_key=True)
+    date = models.DateField("Дата")
+    app = models.ForeignKey(
+        App, verbose_name="Приложение", on_delete=models.CASCADE)
+
+    UNIQUE_USERS_COUNT_FIELD_NAME = "campaign_unique_clicks"
+    CONVERSIONS_COUNT_FIELD_NAME = "conversions"
+    SALES_COUNT_FIELD_NAME = "sales"
+    REVENUE_FIELD_NAME = "sale_revenue"
+    CAMPAIGN_ID_FIELD_NAME = "campaign_id"
+    DATE_FIELD_NAME = "day"
+
+    unique_users_count = models.PositiveIntegerField("Уники", default=0)
+    conversions_count = models.PositiveIntegerField("Конверсии", default=0)
+    sales_count = models.PositiveIntegerField("Продажи", default=0)
+    revenue = models.DecimalField(
+        "Подтвержденный доход", max_digits=10, decimal_places=2, default=Decimal(0))
+
+    class Meta:
+        verbose_name = "Данные из keitaro"
+        verbose_name_plural = "Данные из keitaro"
+
+    def __str__(self):
+        return f"{self.app.name}_{self.date.strftime(r'%Y-%m-%d')}"

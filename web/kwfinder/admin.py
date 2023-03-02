@@ -90,3 +90,12 @@ class DailyAggregatedPositionDataAdmin(admin.ModelAdmin):
     list_select_related = ('app', 'keyword')
     search_fields = ('keyword__name',)
     list_filter = ('date', 'app')
+
+
+@admin.register(models.KeitaroDailyAppData)
+class KeitaroDailyAppDataAdmin(admin.ModelAdmin):
+    list_display = ('date', 'app', 'unique_users_count',
+                    'conversions_count', 'sales_count', 'revenue',)
+    list_select_related = ('app',)
+    search_fields = ('app__name',)
+    list_filter = ('date', 'app')
