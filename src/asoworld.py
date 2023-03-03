@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def upload_regions():
-    """ Uploads regions from `resources/regions.csv` """
+    """ Uploads regions from `resources/regions.csv` to ASOWorldRegion table """
     path = "resources/regions.csv"
 
     if not os.path.isfile(path):

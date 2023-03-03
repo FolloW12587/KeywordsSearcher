@@ -45,8 +45,8 @@ class AppType(models.Model):
         "Аттрибуты для поиска в гугл сторе")
     apple_store_link_attributes = models.TextField(
         "Аттрибуты для поиска в эпл сторе")
-    # asoworld_region = models.ForeignKey(
-    #     ASOWorldRegion, on_delete=models.CASCADE, verbose_name="Регион (ASO World)")
+    asoworld_region = models.ForeignKey(
+        ASOWorldRegion, on_delete=models.CASCADE, verbose_name="Регион (ASO World)")
 
     class Meta:
         verbose_name = "Тип приложения"

@@ -14,7 +14,7 @@ class AppPlatformAdmin(admin.ModelAdmin):
 
 @admin.register(models.AppType)
 class AppTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
+    list_display = ('id', 'name', 'asoworld_region')
 
 
 @admin.register(models.App)
