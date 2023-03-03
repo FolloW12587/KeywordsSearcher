@@ -11,6 +11,7 @@ class AppPlatform(models.Model):
     name = models.CharField("Название", max_length=255)
     base_store_link = models.TextField(
         "Базовая ссылка на страницу поиска стора")
+    asoworld_id = models.PositiveSmallIntegerField("ID в asoworld", default=1)
 
     class Meta:
         verbose_name = "Платформа приложения"
@@ -18,6 +19,22 @@ class AppPlatform(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ASOWorldRegion(models.Model):
+    """ Модель, описывающая регионы из ASO World """
+    code = models.CharField("Код", max_length=2, primary_key=True, unique=True)
+    name = models.CharField("Наименование", max_length=255)
+    is_app_store_supported = models.BooleanField("Поддерживается в App Store")
+    is_google_play_supported = models.BooleanField(
+        "Поддерживается в Google Play")
+
+    class Meta:
+        verbose_name = "Регион (ASO World)"
+        verbose_name_plural = "Регионы (ASO World)"
+
+    def __str__(self):
+        return f"[{self.code}] {self.name}"
 
 
 class AppType(models.Model):
@@ -28,6 +45,8 @@ class AppType(models.Model):
         "Аттрибуты для поиска в гугл сторе")
     apple_store_link_attributes = models.TextField(
         "Аттрибуты для поиска в эпл сторе")
+    # asoworld_region = models.ForeignKey(
+    #     ASOWorldRegion, on_delete=models.CASCADE, verbose_name="Регион (ASO World)")
 
     class Meta:
         verbose_name = "Тип приложения"

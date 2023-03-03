@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.http import HttpRequest
 from django.shortcuts import redirect, render
 from django.urls import path
 
@@ -99,3 +100,18 @@ class KeitaroDailyAppDataAdmin(admin.ModelAdmin):
     list_select_related = ('app',)
     search_fields = ('app__name',)
     list_filter = ('date', 'app')
+
+
+@admin.register(models.ASOWorldRegion)
+class ASOWorldRegionAdmin(admin.ModelAdmin):
+    list_display = ('code', 'name',)
+    search_fields = ('code', 'name',)
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request: HttpRequest, obj=None) -> bool:
+        return False
