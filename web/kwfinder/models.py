@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.db import models
+import uuid
 
 # Create your models here.
 
@@ -40,7 +41,8 @@ class App(models.Model):
     """ Модель, описывающая приложение """
     id = models.AutoField("id", primary_key=True)
     name = models.CharField("Название", max_length=255)
-    link = models.TextField("Ссылка в сторе")
+    # link = models.TextField("Ссылка в сторе")
+    package_id = models.CharField("ID пакета", max_length=255, unique=True)
     platform = models.ForeignKey(
         AppPlatform, verbose_name="Платформа", on_delete=models.CASCADE)
     app_type = models.ForeignKey(
@@ -52,6 +54,10 @@ class App(models.Model):
     num = models.CharField("Номер", max_length=255, unique=True)
     campaign_id = models.CharField(
         "ID кампании в keitaro", max_length=255, unique=True)
+
+    @property
+    def link(self):
+        return f"https://play.google.com/store/apps/details?id={self.package_id}"
 
     class Meta:
         verbose_name = "Приложение"

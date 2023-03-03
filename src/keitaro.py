@@ -1,7 +1,7 @@
 from datetime import date
 import logging
 
-from web.kwfinder.services.KeitaroAPIService import KeitaroAPIService
+from web.kwfinder.services.keitaro import KeitaroAPIService
 from web.kwfinder import models
 
 logger = logging.getLogger(__name__)

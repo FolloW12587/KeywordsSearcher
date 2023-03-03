@@ -89,7 +89,7 @@ class KeitaroAPIService:
             list[dict]: rows
         """
         endpoint = "/report/build"
-        headers = {"Api-Key": self._api_key}
+        headers = self.__getAuthorizationHeader()
 
         total = 1
         offset = 0
@@ -99,7 +99,7 @@ class KeitaroAPIService:
 
         while offset < total:
             logger.info(f"Sending. Total: {total}, Offset: {offset}.")
-            
+
             data['limit'] = limit
             data['offset'] = offset
 
@@ -124,3 +124,7 @@ class KeitaroAPIService:
             rows += results['rows']
 
         return rows
+
+    def __getAuthorizationHeader(self) -> dict[str, str]:
+        """ Returns request authorization header """
+        return {"Api-Key": self._api_key}
