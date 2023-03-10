@@ -1,8 +1,5 @@
 from decimal import Decimal
 from django.db import models
-import uuid
-
-# Create your models here.
 
 
 class AppPlatform(models.Model):
@@ -185,3 +182,132 @@ class KeitaroDailyAppData(models.Model):
 
     def __str__(self):
         return f"{self.app.name}_{self.date.strftime(r'%Y-%m-%d')}"
+
+
+class ConsoleDailyData(models.Model):
+    """ Модель, описывающая ежедневные данные из консоли по ключевым словам по приложениям """
+    id = models.AutoField("id", primary_key=True)
+    date = models.DateField("Дата")
+    app = models.ForeignKey(
+        App, verbose_name="Приложение", on_delete=models.CASCADE)
+    keyword = models.ForeignKey(
+        Keyword, verbose_name="Ключевое слово", on_delete=models.CASCADE)
+
+    views = models.PositiveSmallIntegerField("Посетители", default=0)
+    installs = models.PositiveSmallIntegerField("Установки", default=0)
+
+    @property
+    def conversion(self):
+        return 0.0 if self.views == 0 else (self.installs / self.views * 100)
+
+    class Meta:
+        verbose_name = "Данные из консоли"
+        verbose_name_plural = "Данные из консоли"
+
+    def __str__(self):
+        return f"{self.keyword.name}_{self.app.name}_{self.date.strftime(r'%Y-%m-%d')}"
+
+
+class ASOWorldOrder(models.Model):
+    """ Модель, описывающая заявки в ASO World"""
+    DRAFT = 0
+    ACTIVE = 1
+    COMPLETED = 2
+    INVALID = 3
+    ACCOUNTING = 4
+    CANCELED = 5
+    PAUSED = 6
+    STATE_CHOICES = (
+        (DRAFT, "Draft"),
+        (ACTIVE, "Active"),
+        (COMPLETED, "Completed"),
+        (INVALID, "Invalid"),
+        (ACCOUNTING, "Accounting"),
+        (CANCELED, "Canceled"),
+        (PAUSED, "Paused")
+    )
+
+    PACKAGE = "PACKAGE"
+    KEYWORD = "KEYWORD"
+    RATE = "RATE"
+    REVIEW = "REVIEW"
+    COMPOSITE = "COMPOSITE"
+    LREVIEW = "LREVIEW"
+    GREVIEW = "GREVIEW"
+    SMART = "SMART"
+    INSTALLS = "INSTALLS"
+    SUBMIT_TYPE_CHOICES = (
+        (PACKAGE, "Package (Direct) Installs"),
+        (KEYWORD, "Keyword Installs"),
+        (RATE, "Ratings"),
+        (REVIEW, "Reviews"),
+        (COMPOSITE, "Advanced Campaign"),
+        (LREVIEW, "App Review Likes Service"),
+        (GREVIEW, "Guaranteed Reviews Service"),
+        (SMART, "Smart Campaign"),
+        (INSTALLS, "Combo Package")
+    )
+
+    SPREAD = "24h"
+    ONCE = "once"
+    INSTALL_TYPE_CHOICES = (
+        (SPREAD, "Spread Installs Within 24h"),
+        (ONCE, "All Installs At Once")
+    )
+
+    id = models.AutoField("id", primary_key=True)
+    asoworld_id = models.CharField("ASO World id", max_length=255, unique=True)
+    state = models.PositiveSmallIntegerField("Статус", choices=STATE_CHOICES)
+    app = models.ForeignKey(
+        App, verbose_name="Приложение", on_delete=models.CASCADE)
+    submit_type = models.CharField(
+        "Тип", choices=SUBMIT_TYPE_CHOICES, max_length=9)
+    install_type = models.CharField(
+        "Тип установки", choices=INSTALL_TYPE_CHOICES, max_length=4)
+
+    order_price = models.DecimalField(
+        "Сумма заказа", default=Decimal(0), decimal_places=2, max_digits=10)
+
+    created_at = models.DateTimeField(
+        "Создана", editable=False)
+    started_at = models.DateTimeField(
+        "Запущена", editable=False)
+    canceled_at = models.DateTimeField(
+        "Отменена", null=True, blank=True, default=None, editable=False)
+    finished_at = models.DateTimeField(
+        "Закончена", null=True, blank=True, default=None, editable=False)
+
+    class Meta:
+        verbose_name = "Заявка ASO World"
+        verbose_name_plural = "Заявки ASO World"
+
+    def __str__(self):
+        return f"[{self.asoworld_id}] {self.app.name}"
+
+
+class ASOWorldOrderKeywordData(models.Model):
+    """ Модель, описывающая установки по ключам для заявки в ASO World"""
+    DONE = "0"
+    WAITING = "1"
+    CANCELED = "2"
+    STATE_CHOICES = (
+        (DONE, "Отработано"),
+        (WAITING, "В ожидании"),
+        (CANCELED, "Отменено")
+    )
+
+    id = models.AutoField("id", primary_key=True)
+    order = models.ForeignKey(
+        ASOWorldOrder, on_delete=models.CASCADE, verbose_name="Заявка")
+    keyword = models.ForeignKey(
+        Keyword, on_delete=models.CASCADE, verbose_name="Ключевое слово")
+    installs = models.PositiveSmallIntegerField("Установки", default=0)
+    date = models.DateField("Дата")
+    state = models.CharField("Статус", max_length=1, choices=STATE_CHOICES)
+
+    class Meta:
+        verbose_name = "Установка по ключу в ASO World"
+        verbose_name_plural = "Установки по ключу в ASO World"
+
+    def __str__(self):
+        return f"[{self.order.asoworld_id}] {self.keyword.name}"

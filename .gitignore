@@ -145,3 +145,5 @@ driver/chromedriver
 # root static
 web/static/*
 web/media/*
+
+resources/*

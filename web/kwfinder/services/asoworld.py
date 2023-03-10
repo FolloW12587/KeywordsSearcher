@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class ASOWorldAPIService:
     """ Class to connect to asoworld """
+    PAGE_SIZE = 1000
 
     def __init__(self) -> None:
         assert os.getenv("ASOWORLD_TOKEN"),\
@@ -43,6 +44,46 @@ class ASOWorldAPIService:
         }
         return self.__add_app(data)
 
+    def add_keyword(self, app: models.App, keyword: str) -> bool:
+        """ Adds `keyword` to ASO World app, that is connected to `models.App`.
+
+        Args:
+            app (models.App): App to add keyword to
+            keyword (str): keyword to add
+
+        Returns:
+            bool: True if success
+        """
+        data = {
+            "region": app.app_type.asoworld_region.code,
+            "appId": app.package_id,
+            "platform": app.platform.asoworld_id,
+            "keyword": keyword
+        }
+        return self.__add_keyword(data)
+
+    def getOrders(self, app: models.App | None = None) -> list[dict[str, Any]]:
+        """ Gets list of orders in ASO World
+
+        Args:
+            app (models.App | None): App to get orders for. If None, returns all orders.
+
+        Returns:
+            list[dict[str, Any]]: List of orders
+        """
+        data: dict[str, Any]
+        data = {
+            "page": 1,
+            "pageSize": self.PAGE_SIZE
+        }
+
+        if app:
+            data["platform"] = app.platform.asoworld_id
+            data["appId"] = app.package_id
+            data["region"] = app.app_type.asoworld_region.code
+
+        return self.__order_list(data)
+
     @__apiMethod
     def __add_app(self, data: dict[str, Any]) -> bool:
         """ASO World API method to add app to console with given `data`.
@@ -62,8 +103,75 @@ class ASOWorldAPIService:
             logger.error(
                 f"Adding app to ASO World with data {data} ended with status code {r.status_code}. Message: {r.text}")
             return False
-        
+
         return True
+
+    @__apiMethod
+    def __add_keyword(self, data: dict[str, Any]) -> bool:
+        """ ASO World API method to add keyword to app
+
+        Args:
+            data (dict[str, Any]): Must have "region", "platform", "appId" and "keyword" keys in it.
+
+        Returns:
+            bool: True if succed
+        """
+        endpoint = "Keyword/add"
+        headers = self.__getAuthorizationHeader()
+        r = requests.post(f"{self._host}/{endpoint}",
+                          data=data, headers=headers)
+
+        if r.status_code != 200:
+            logger.error(
+                f"Adding keyword to app in ASO World with data {data} ended with status code {r.status_code}. Message: {r.text}")
+            return False
+
+        return True
+
+    @__apiMethod
+    def __order_list(self, data: dict[str, Any]) -> list[dict[str, Any]]:
+        """ ASO World API method to get orders.
+
+        Args:
+            data (dict[str, Any]): Must have "pageSize" key. 
+                Optional can be "orderId", "appId", "platform", "region", "state", "stime", "etime", "submitType".
+
+        Returns:
+            list[dict[str, Any]]: returns list of orders' data
+        """
+        endpoint = "Order/list"
+        headers = self.__getAuthorizationHeader()
+
+        page = 0
+        data_count = 1
+
+        output = []
+        while page * self.PAGE_SIZE < data_count:
+            page += 1
+
+            data['page'] = page
+
+            r = requests.post(f"{self._host}/{endpoint}",
+                              data=data, headers=headers)
+
+            if r.status_code != 200:
+                logger.error(
+                    f"Getting orders list from ASO World with data {data} ended with status code {r.status_code}. Message: {r.text}")
+                return output
+
+            response_data = r.json()
+            if "P" not in response_data:
+                logger.error(
+                    f"Getting orders list from ASO World with data {data} ended with status code {r.status_code} but haven't got 'P' in data. \
+                        Message: {r.text}")
+                return output
+
+            response_data = response_data['P']
+            data_count = response_data['count']
+            output += response_data['list']
+
+        logger.info(f"Got {len(output)} orders.")
+        return output
 
     def __getAuthorizationHeader(self) -> dict[str, str]:
         """ Returns request authorization header """
