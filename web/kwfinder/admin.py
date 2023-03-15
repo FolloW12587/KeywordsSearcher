@@ -132,7 +132,7 @@ class ASOWorldOrderKeywordDataInline(admin.TabularInline):
 @admin.register(models.ASOWorldOrder)
 class ASOWorldOrderAdmin(admin.ModelAdmin):
     list_display = ("asoworld_id", "app", "submit_type",
-                    "state", "order_price", "started_at")
+                    "state", "price", "started_at")
     list_select_related = ('app',)
     list_filter = ('submit_type', 'state', "install_type")
     search_fields = ("asoworld_id",)
@@ -150,10 +150,9 @@ class ASOWorldOrderAdmin(admin.ModelAdmin):
 
 @admin.register(models.ASOWorldOrderKeywordData)
 class ASOWorldOrderKeywordDataAdmin(admin.ModelAdmin):
-    list_display = ("order", "keyword", "installs", "date", "state")
+    list_display = ("order", "keyword", "installs", "date")
     list_select_related = ('order', "keyword")
     search_fields = ('keyword__name',)
-    list_filter = ('state',)
 
     def has_add_permission(self, request, obj=None) -> bool:
         return False

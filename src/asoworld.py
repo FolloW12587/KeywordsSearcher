@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from django.db.models import F
+from django.db.models import Sum
 import logging
 import os
 from typing import Any
@@ -41,15 +41,15 @@ def update_orders():
     service = ASOWorldAPIService()
     orders = service.getOrders()
 
-    for order in orders:
-        db_order = models.ASOWorldOrder.objects.filter(
-            asoworld_id=order['_id']).first()
+    for order_data in orders:
+        order = models.ASOWorldOrder.objects.filter(
+            asoworld_id=order_data['_id']).first()
 
-        if not db_order:
-            __create_order(data=order)
+        if not order:
+            __create_order(data=order_data)
             continue
 
-        __update_order(order=db_order, data=order)
+        __update_order(order=order, data=order_data)
 
 
 def __update_order(order: models.ASOWorldOrder, data: dict[str, Any]):
@@ -60,66 +60,88 @@ def __update_order(order: models.ASOWorldOrder, data: dict[str, Any]):
         data (dict[str, Any]): data
     """
     logger.info(f"Updating order {order.asoworld_id}.")
-    match data['state']:
-        case models.ASOWorldOrder.PAUSED:
-            __encrease_paused_dates(order)
-        case models.ASOWorldOrder.ACTIVE as new_state:
-            if order.state == new_state:
+
+    match order.state, data['state']:
+        case models.ASOWorldOrder.ACCOUNTING, models.ASOWorldOrder.CANCELED:
+            order.state = data['state']
+            return
+        case models.ASOWorldOrder.PAUSED, \
+                models.ASOWorldOrder.CANCELED | models.ASOWorldOrder.PAUSED | models.ASOWorldOrder.ACCOUNTING:
+            last_paused_at = __datetime_from_timestamp(data['lastPauseTime'])
+            if order.last_paused_at == last_paused_at:
+                order.state = data['state']
                 return
-            __new_state_active(order)
-        case models.ASOWorldOrder.COMPLETED as new_state:
-            if order.state == new_state:
-                return
-            __new_state_complete(order)
-        case models.ASOWorldOrder.CANCELED | models.ASOWorldOrder.INVALID \
-                | models.ASOWorldOrder.ACCOUNTING as new_state:
-            if order.state == new_state:
-                return
-            __new_state_canceled(order)
+            __update_order_data(order=order, data=data)
+        case models.ASOWorldOrder.PAUSED | models.ASOWorldOrder.ACTIVE, _:
+            __update_order_data(order=order, data=data)
+        case state1, state2 if state1 == state2:
+            return
         case _:
             logger.warning(
-                f"Invalid state change from {order.state} to {data['state']}.")
+                f"Unexpected state change from {order.state} to {data['state']}")
 
     order.state = data['state']
     order.save()
 
 
-def __encrease_paused_dates(order: models.ASOWorldOrder):
-    current_date = datetime.now(tz=timezone.utc).date()
+def __update_order_data(order: models.ASOWorldOrder, data: dict[str, Any]):
+    """ Updates orders last paused time and keywords data
 
-    keywords_data = models.ASOWorldOrderKeywordData.objects.filter(
-        order=order,
-        state=models.ASOWorldOrderKeywordData.WAITING
-    )
+    Args:
+        order (models.ASOWorldOrder): order to update
+        data (dict[str, Any]): new data
+    """
+    last_paused_at = __datetime_from_timestamp(
+        data['lastPauseTime'] if 'lastPauseTime' in data else -1)
+    order.last_paused_at = last_paused_at
+    order.save()
 
-    if len(keywords_data) > 0:
-        earliest_date = keywords_data.earliest('date').date
-        if earliest_date < current_date:
-            keywords_data.update(
-                date=F('date') + (current_date - earliest_date))
-
-
-def __new_state_active(order: models.ASOWorldOrder):
-    current_date = datetime.now(tz=timezone.utc).date()
-    models.ASOWorldOrderKeywordData.objects.filter(
-        order=order,
-        state=models.ASOWorldOrderKeywordData.WAITING,
-        date__lt=current_date
-    ).update(state=models.ASOWorldOrderKeywordData.DONE)
+    __update_order_keywords_data(
+        order, progress=data['progress']['words'])
 
 
-def __new_state_complete(order: models.ASOWorldOrder):
-    models.ASOWorldOrderKeywordData.objects.filter(
-        order=order,
-        state=models.ASOWorldOrderKeywordData.WAITING
-    ).update(state=models.ASOWorldOrderKeywordData.DONE)
+def __update_order_keywords_data(order: models.ASOWorldOrder, progress: dict[str, dict[str, int]]):
+    """ Updates order's keywords data
 
+    Args:
+        order (models.ASOWorldOrder): order to update
+        progress (dict[str, dict[str, int]]): current orders progress
+    """
+    date_to_update = datetime.now(tz=timezone.utc).date() - timedelta(days=1)
 
-def __new_state_canceled(order: models.ASOWorldOrder):
-    models.ASOWorldOrderKeywordData.objects.filter(
-        order=order,
-        state=models.ASOWorldOrderKeywordData.WAITING
-    ).update(state=models.ASOWorldOrderKeywordData.CANCELED)
+    for keyword_name in progress:
+        keyword = models.Keyword.objects.filter(
+            name=keyword_name,
+            app_type=order.app.app_type
+        ).first()
+
+        if not keyword:
+            logger.warning(
+                f"No keyword {keyword_name} for app {order.app.name}!")
+            continue
+
+        data = models.ASOWorldOrderKeywordData.objects.filter(
+            date=date_to_update,
+            order=order,
+            keyword=keyword
+        ).first()
+
+        if not data:
+            data = models.ASOWorldOrderKeywordData(
+                date=date_to_update,
+                order=order,
+                keyword=keyword
+            )
+
+        old_data = models.ASOWorldOrderKeywordData.objects.filter(
+            order=order,
+            keyword=keyword
+        ).aggregate(Sum("installs"))
+        old_data['installs__sum'] = 0 if old_data['installs__sum'] == None \
+            else old_data['installs__sum']
+
+        data.installs += old_data['installs__sum']
+        data.save()
 
 
 def __create_order(data: dict[str, Any]) -> models.ASOWorldOrder | None:
@@ -155,24 +177,28 @@ def __create_order(data: dict[str, Any]) -> models.ASOWorldOrder | None:
         state=data['state'],
         submit_type=data['submitType'],
         install_type=data['installType'],
-        order_price=data['orderPrice'],
+        price=data['orderPrice'],
         created_at=created_at,
         started_at=started_at,
         canceled_at=__datetime_from_timestamp(data['cancelTime']),
         finished_at=__datetime_from_timestamp(data['finishTime']),
+        last_paused_at=__datetime_from_timestamp(
+            data['lastPauseTime'] if 'lastPauseTime' in data else -1),
     )
     order.save()
 
-    __create_order_keyword_data(order, days=data['days'])
+    __create_order_keyword_data(
+        order, days=data['days'], progress=data['progress']['words'])
     return order
 
 
-def __create_order_keyword_data(order: models.ASOWorldOrder, days: list[list[dict]]):
+def __create_order_keyword_data(order: models.ASOWorldOrder, days: list[list[dict]], progress: dict[str, dict[str, int]]):
     """ Creates order keyword daily data
 
     Args:
         order (models.ASOWorldOrder): order 
         days (list[list[dict]]): daily data
+        progress (dict[str, dict[str, int]]): progress for each keyword
     """
     logger.info(
         f"Creating order keyword data instances for order with id {order.asoworld_id}.")
@@ -181,42 +207,29 @@ def __create_order_keyword_data(order: models.ASOWorldOrder, days: list[list[dic
             "Submit type of order is 'Package'. So its impossible to get keyword data!")
         return
 
-    current_date = datetime.now(tz=timezone.utc).date()
-    start_date = None if not order.started_at else order.started_at.date()
+    if not order.started_at:
+        logger.warning(
+            f"Order {order.asoworld_id} is not started yet!")
+        return
+
+    start_date = order.started_at.date()
     canceled_date = None if not order.canceled_at else order.canceled_at.date()
+    finished_date = None if not order.finished_at else order.finished_at.date()
+
+    if finished_date and not canceled_date:
+        __create_finished_order_keyword_data(order=order, days=days)
+        return
+
+    current_date = datetime.now(tz=timezone.utc).date()
+    kw_progress = {}
 
     for i, daily_data in enumerate(days):
-        if start_date == None:
-            for keyword_data in daily_data:
-                keyword = models.Keyword.objects.filter(
-                    name=keyword_data['word'],
-                    app_type=order.app.app_type
-                ).first()
-
-                if not keyword:
-                    logger.info(
-                        f"Cannot find keyword {keyword_data['word']} for app {order.app.name}.")
-                    continue
-
-                data = models.ASOWorldOrderKeywordData(
-                    order=order,
-                    keyword=keyword,
-                    installs=keyword_data['count'],
-                    state=models.ASOWorldOrderKeywordData.WAITING if canceled_date == None
-                    else models.ASOWorldOrderKeywordData.CANCELED
-                )
-                data.save()
-
-            continue
-
         day = start_date + timedelta(days=i)
 
-        state = models.ASOWorldOrderKeywordData.DONE
-        if day >= current_date:
-            state = models.ASOWorldOrderKeywordData.WAITING
-
-        if canceled_date and day >= canceled_date:
-            state = models.ASOWorldOrderKeywordData.CANCELED
+        if day > current_date or \
+                (day == current_date and not canceled_date) or \
+                (canceled_date and day > canceled_date):
+            return
 
         for keyword_data in daily_data:
             keyword = models.Keyword.objects.filter(
@@ -225,15 +238,62 @@ def __create_order_keyword_data(order: models.ASOWorldOrder, days: list[list[dic
             ).first()
 
             if not keyword:
-                logger.info(
-                    f"Cannot find keyword {keyword_data['word']} for app {order.app.name}.")
+                if i == 0:
+                    logger.warning(
+                        f"Cannot find keyword {keyword_data['word']} for app {order.app.name}.")
+                continue
+
+            if not keyword.name in kw_progress:
+                kw_progress[keyword.name] = 0
+
+            installs = keyword_data['count']
+            total_installs = progress[keyword.name]['finish']
+
+            if installs + kw_progress[keyword.name] > total_installs:
+                installs = total_installs - kw_progress[keyword.name]
+
+            if installs == 0:
+                continue
+
+            kw_progress[keyword.name] += installs
+
+            data = models.ASOWorldOrderKeywordData(
+                order=order,
+                keyword=keyword,
+                installs=installs,
+                date=day
+            )
+            data.save()
+
+
+def __create_finished_order_keyword_data(order: models.ASOWorldOrder, days: list[list[dict]]):
+    """ Creates data in database if order was finished normally
+
+    Args:
+        order (models.ASOWorldOrder): order
+        days (list[list[dict]]): daily data
+    """
+    start_date = order.started_at.date()
+
+    for i, daily_data in enumerate(days):
+        day = start_date + timedelta(days=i)
+
+        for keyword_data in daily_data:
+            keyword = models.Keyword.objects.filter(
+                name=keyword_data['word'],
+                app_type=order.app.app_type
+            ).first()
+
+            if not keyword:
+                if i == 0:
+                    logger.warning(
+                        f"Cannot find keyword {keyword_data['word']} for app {order.app.name}.")
                 continue
 
             data = models.ASOWorldOrderKeywordData(
                 order=order,
                 keyword=keyword,
                 installs=keyword_data['count'],
-                state=state,
                 date=day
             )
             data.save()

@@ -265,7 +265,7 @@ class ASOWorldOrder(models.Model):
     install_type = models.CharField(
         "Тип установки", choices=INSTALL_TYPE_CHOICES, max_length=4)
 
-    order_price = models.DecimalField(
+    price = models.DecimalField(
         "Сумма заказа", default=Decimal(0), decimal_places=2, max_digits=10)
 
     created_at = models.DateTimeField(
@@ -276,6 +276,8 @@ class ASOWorldOrder(models.Model):
         "Отменена", null=True, blank=True, default=None, editable=False)
     finished_at = models.DateTimeField(
         "Закончена", null=True, blank=True, default=None, editable=False)
+    last_paused_at = models.DateTimeField(
+        "Последняя пауза", null=True, blank=True, default=None, editable=False)
 
     class Meta:
         verbose_name = "Заявка ASO World"
@@ -287,15 +289,6 @@ class ASOWorldOrder(models.Model):
 
 class ASOWorldOrderKeywordData(models.Model):
     """ Модель, описывающая установки по ключам для заявки в ASO World"""
-    DONE = "0"
-    WAITING = "1"
-    CANCELED = "2"
-    STATE_CHOICES = (
-        (DONE, "Отработано"),
-        (WAITING, "В ожидании"),
-        (CANCELED, "Отменено")
-    )
-
     id = models.AutoField("id", primary_key=True)
     order = models.ForeignKey(
         ASOWorldOrder, on_delete=models.CASCADE, verbose_name="Заявка")
@@ -303,7 +296,6 @@ class ASOWorldOrderKeywordData(models.Model):
         Keyword, on_delete=models.CASCADE, verbose_name="Ключевое слово")
     installs = models.PositiveSmallIntegerField("Установки", default=0)
     date = models.DateField("Дата")
-    state = models.CharField("Статус", max_length=1, choices=STATE_CHOICES)
 
     class Meta:
         verbose_name = "Установка по ключу в ASO World"
