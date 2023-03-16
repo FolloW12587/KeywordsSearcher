@@ -198,7 +198,7 @@ class ConsoleDailyData(models.Model):
 
     @property
     def conversion(self):
-        return 0.0 if self.views == 0 else (self.installs / self.views * 100)
+        return 0.0 if self.views == 0 else round(self.installs / self.views * 100, 2)
 
     class Meta:
         verbose_name = "Данные из консоли"
