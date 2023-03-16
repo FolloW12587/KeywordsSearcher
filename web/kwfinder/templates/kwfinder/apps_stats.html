@@ -17,7 +17,7 @@
         {% for app in apps %}
             <tr class="row" onclick="window.location='/apps_analytics/{{ app.id }}/';">
                 <td>{{ app.num }}</td>
-                <td> <img src="{{ app.icon }}" width="50" height="50"> {{ app.name }}</td>
+                <td> <img src="{{ app.icon.url }}" width="50" height="50"> {{ app.name }}</td>
                 <td>{{ app.is_active }}</td>
                 <td> {{ app.app_type.asoworld_region }}</td>
             </tr>
