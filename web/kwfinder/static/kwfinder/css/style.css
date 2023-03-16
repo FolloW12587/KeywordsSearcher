@@ -685,6 +685,16 @@ code {
     margin-left: 50px;
 }
 
+.header_navigator {
+    margin-left: auto;
+    margin-right: 50px;
+}
+
+.header_navigator--link {
+    color: #fff;
+    margin-left: 10px;
+}
+
 /* Стили страницы */
 
 .main {
@@ -1467,6 +1477,7 @@ button.keyword_picker_modal {
 /* App analytics */
 .keywords_select {
     margin-left: 20px;
+    border-radius: 5px;
 }
 
 .load_data {

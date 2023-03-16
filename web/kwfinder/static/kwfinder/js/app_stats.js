@@ -24,13 +24,63 @@ let params = {
 const table = document.getElementById("table");
 const load_data_button = document.getElementById("load_data__button");
 const keyword = document.getElementById("keyword");
+const closeModalButtons = document.querySelectorAll('[data-close-button]');
+const overlay = document.getElementById('overlay');
 
 document.addEventListener("DOMContentLoaded", () => {
     datepicker.render();
 
     keyword.addEventListener('change', keywordChange);
     load_data_button.addEventListener('click', loadData);
+
+    overlay.addEventListener('click', () => {
+        const modals = document.querySelectorAll('.modal.active')
+        modals.forEach(modal => {
+            closeModal(modal)
+        })
+    })
+
+    closeModalButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const modal = button.closest('.modal')
+            closeModal(modal)
+        })
+    })
 });
+
+function closeModal(modal) {
+    if (modal == null) return
+    modal.classList.remove('active')
+    overlay.classList.remove('active')
+}
+
+function openModal(modal) {
+    if (modal == null) return
+    modal.classList.add('active')
+    overlay.classList.add('active')
+}
+
+async function loadPositionData(date) {
+    let modal = document.getElementById("modal-keyword");
+    let modalBody = modal.getElementsByClassName("modal-body")[0];
+    modalBody.innerHTML = '<img class="spinner" src="/static/kwfinder/img/spinner.gif" style="margin: 0 auto;">';
+    openModal(modal);
+    modal.getElementsByClassName("title")[0].innerHTML = date;
+
+    let url = `/position_data/?app__id=${app_id}&keyword__id=${params.keyword_selected}&date=${date}&ordering=run__started_at`;
+    let response = await fetch(url)
+        .then((response) => {
+            return response.json();
+        });
+
+    let results = response.results;
+    let s = "";
+    for (var i = 0; i < results.length; i++) {
+        s += `<div>${results[i].datetime}: ${results[i].position}</div>`;
+    }
+
+    modalBody.innerHTML = s;
+}
 
 function keywordChange(e) {
     params.keyword_selected = keyword.value;
@@ -81,6 +131,9 @@ function updateTable() {
         s += `<td>${asoworld_installs}</td>`;
 
         row.innerHTML = s;
+        row.addEventListener('click', e => {
+            loadPositionData(day);
+        })
         table.getElementsByTagName("tbody")[0].appendChild(row);
     })
     params.date_range.forEach(app => {

@@ -7,11 +7,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}</title>
     <link href="{% static "kwfinder/css/style.css" %}" rel="stylesheet">
+    {% block loads %}
+    {% endblock %}
 </head>
 <body>
     <div class="header">
-        {% block header %}
-        {% endblock %}
+        <div class="header--title">
+            {% block header_name %}
+            {% endblock %}
+        </div>
+        <div class="header_navigator">
+            <a href="/admin/" class="header_navigator--link">Админка</a>
+            <a href="/apps_analytics" class="header_navigator--link">Аналитика по приложениям</a>
+            <a href="/" class="header_navigator--link">Аналитика по ключам</a>
+        </div>
     </div>
     <div class="main">
         {% block content %}

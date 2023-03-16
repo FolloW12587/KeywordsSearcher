@@ -1,15 +1,14 @@
 {% extends "kwfinder/base.html" %}
 {% load static %}
 {% block title %}Apps stats{% endblock %}
-{% block header %}
-<div class="header--title">Analytics for apps</div>
+{% block loads %}
 <script type="module" src="{% static "kwfinder/js/datepicker.js" %}"></script>
 <script type="module" src="{% static "kwfinder/js/app_stats.js" %}"></script>
 <script>
     const app_id = {{ app.id }};
-    const app_type_id = {{ app.app_type.id }};
 </script>
 {% endblock %}
+{% block header_name %} App analytics {% endblock %}
 
 {% block content %}
 <div class="header_info">
@@ -21,7 +20,7 @@
         <select name="keyword" id="keyword" class="keywords_select">
             <option hidden value selected disabled>-- Выберите ключ --</option>
             {% for keyword in keywords %}
-                <option value="{{ keyword.id }}">{{ keyword.name }}</option>
+            <option value="{{ keyword.id }}">{{ keyword.name }}</option>
             {% endfor %}
         </select>
         <div class="load_data">
@@ -58,7 +57,7 @@
         <tr class="header_row">
             <th>Дата</th>
             <th>Уники</th>
-            <th>Консверсии</th>
+            <th>Конверсии</th>
             <th>Продажи</th>
             <th>Доход</th>
             <th>Место</th>
@@ -67,13 +66,15 @@
             <th>Конверсия страницы</th>
             <th>Инсталлы</th>
         </tr>
-        <!-- <tr class="row">
-            <td>2</td>
-            <td>App</td>
-            <td>+</td>
-            <td>BR</td>
-            <td>Подробнее</td>
-        </tr> -->
     </tbody>
 </table>
+<div class="modal" id="modal-keyword">
+    <div class="modal-header">
+        <div class="title"></div>
+        <button data-close-button class="close-button">&times;</button>
+    </div>
+    <div class="modal-body">
+    </div>
+</div>
+<div id="overlay"></div>
 {% endblock %}

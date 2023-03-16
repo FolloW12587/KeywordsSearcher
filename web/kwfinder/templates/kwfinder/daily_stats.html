@@ -1,12 +1,12 @@
 {% extends "kwfinder/base.html" %}
 {% load static %}
 {% block title %}Daily stats{% endblock %}
-{% block header %}
-<div class="header--title">Analytics for apps</div>
-<script type="module" src="{% static "kwfinder/js/datepicker.js" %}"></script>
-<script type="module" src="{% static "kwfinder/js/daily_stats.js" %}"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% block loads %}
+  <script type="module" src="{% static "kwfinder/js/datepicker.js" %}"></script>
+  <script type="module" src="{% static "kwfinder/js/daily_stats.js" %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
+{% block header_name %} Keywords analytics {% endblock %}
 
 {% block content %}
 <div class="button settings--opener settings--opener__active">
