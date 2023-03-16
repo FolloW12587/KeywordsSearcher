@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.http import Http404
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -105,7 +106,62 @@ class AppPositionScriptRunDataView(ReadOnlyModelViewSet):
         return queryset
 
 
+class KeitaroDailyAppDataView(ReadOnlyModelViewSet):
+    queryset = models.KeitaroDailyAppData.objects.all()
+    serializer_class = serializers.KeitaroDailyAppDataSerializer
+    permission_classes = [IsAuthenticated, ]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, ]
+    filterset_fields = {
+        'app__id': ['exact', ],
+        'date': ['exact', 'gte', 'lte']
+    }
+    ordering_fields = ['date', ]
+
+
+class ConsoleDailyDataView(ReadOnlyModelViewSet):
+    queryset = models.ConsoleDailyData.objects.all()
+    serializer_class = serializers.ConsoleDailyDataSerializer
+    permission_classes = [IsAuthenticated, ]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, ]
+    filterset_fields = {
+        'app__id': ['exact', ],
+        'keyword__id': ['exact', ],
+        'date': ['exact', 'gte', 'lte']
+    }
+    ordering_fields = ['date', ]
+
+
+class ASOWorldOrderKeywordDataView(ReadOnlyModelViewSet):
+    queryset = models.ASOWorldOrderKeywordData.objects.all()
+    serializer_class = serializers.ASOWorldOrderKeywordDataSerializer
+    permission_classes = [IsAuthenticated, ]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, ]
+    filterset_fields = {
+        'order__app__id': ['exact', ],
+        'keyword__id': ['exact', ],
+        'date': ['exact', 'gte', 'lte']
+    }
+    ordering_fields = ['date', ]
+
+
 @login_required
 def dailyAnalytics(request):
     """ View for showing daily analytics page """
     return render(request, 'kwfinder/daily_stats.html')
+
+
+@login_required
+def appsAnalytics(request):
+    """ View for showing apps analytics page """
+    apps = models.App.objects.all()
+    return render(request, 'kwfinder/apps_stats.html', {'apps': apps})
+
+
+@login_required
+def appAnalytics(request, app_id: int):
+    try:
+        app = models.App.objects.get(pk=app_id)
+    except models.App.DoesNotExist:
+        raise Http404("App does not exist")
+    keywords = models.Keyword.objects.filter(app_type=app.app_type)
+    return render(request, 'kwfinder/app_stats.html', {'app': app, "keywords": keywords})

@@ -1432,3 +1432,57 @@ button.keyword_picker_modal {
     margin: 5px;
     cursor: pointer;
 }
+
+
+/* Apps analytics */
+.apps_table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.apps_table td,
+.apps_table th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+.apps_table th {
+    font-weight: bold;
+}
+
+.apps_table tr.row:nth-child(even) {
+    background-color: #dddddd;
+}
+
+.apps_table tr.row {
+    cursor: pointer;
+}
+
+.apps_table tr.row:first {
+    cursor: default;
+}
+
+/* App analytics */
+.keywords_select {
+    margin-left: 20px;
+}
+
+.load_data {
+    margin-left: auto;
+}
+
+.load_data__button {
+    height: 44px;
+    padding: 0 18px;
+    border-radius: 5px;
+}
+
+.load_state {
+    padding-left: 7px;
+}
+
+.hidden {
+    display: none;
+}

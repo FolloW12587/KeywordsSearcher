@@ -1,0 +1,79 @@
+{% extends "kwfinder/base.html" %}
+{% load static %}
+{% block title %}Apps stats{% endblock %}
+{% block header %}
+<div class="header--title">Analytics for apps</div>
+<script type="module" src="{% static "kwfinder/js/datepicker.js" %}"></script>
+<script type="module" src="{% static "kwfinder/js/app_stats.js" %}"></script>
+<script>
+    const app_id = {{ app.id }};
+    const app_type_id = {{ app.app_type.id }};
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="header_info">
+    <div class="title" style="font-size: larger;font-weight: bold;"> [{{ app.num }}] {{ app.name }}</div>
+</div>
+<div class="settings">
+    <div style="display: flex;">
+        <div class="date_range--picker"></div>
+        <select name="keyword" id="keyword" class="keywords_select">
+            <option hidden value selected disabled>-- Выберите ключ --</option>
+            {% for keyword in keywords %}
+                <option value="{{ keyword.id }}">{{ keyword.name }}</option>
+            {% endfor %}
+        </select>
+        <div class="load_data">
+            <button id="load_data__button" class="load_data__button" disabled>Загрузить</button>
+        </div>
+    </div>
+    <div class="loading_info hidden">
+        <div style="display: flex;">
+            <div> Данные с кейтаро: </div>
+            <div class="load_state keitaro_data_load_state">...</div>
+        </div>
+        <div style="display: flex;">
+            <div> Данные свои: </div>
+            <div class="load_state our_data_load_state">...</div>
+        </div>
+        <div style="display: flex;">
+            <div> Данные с консоли: </div>
+            <div class="load_state console_data_load_state">...</div>
+        </div>
+        <div style="display: flex;">
+            <div> Данные с ASO World: </div>
+            <div class="load_state asoworld_data_load_state">...</div>
+        </div>
+    </div>
+</div>
+<table class="apps_table" id="table">
+    <tbody>
+        <tr class="header_row">
+            <th colspan="5">Данные с кейтаро</th>
+            <th>Cами</th>
+            <th colspan="3">Консоль</th>
+            <th>ASO World</th>
+        </tr>
+        <tr class="header_row">
+            <th>Дата</th>
+            <th>Уники</th>
+            <th>Консверсии</th>
+            <th>Продажи</th>
+            <th>Доход</th>
+            <th>Место</th>
+            <th>Посетители</th>
+            <th>Установки</th>
+            <th>Конверсия страницы</th>
+            <th>Инсталлы</th>
+        </tr>
+        <!-- <tr class="row">
+            <td>2</td>
+            <td>App</td>
+            <td>+</td>
+            <td>BR</td>
+            <td>Подробнее</td>
+        </tr> -->
+    </tbody>
+</table>
+{% endblock %}

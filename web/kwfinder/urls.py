@@ -12,13 +12,25 @@ router.register('app_platforms', views.AppPlatformView,
 router.register('keywords', views.KeywordView, basename='keywords')
 router.register('daily_data', views.DailyAggregatedDataView,
                 basename='daily_data')
+router.register('keitaro_data', views.KeitaroDailyAppDataView,
+                basename='keitaro_data')
+router.register('console_data', views.ConsoleDailyDataView,
+                basename='console_data')
 router.register('position_data',
                 views.AppPositionScriptRunDataView, basename='position_data')
+router.register('asoworld_data',
+                views.ASOWorldOrderKeywordDataView, basename='asoworld_data')
 # router.register('', views.AppView, basename='apps')
 
 urlpatterns = [
     path('',
          views.dailyAnalytics,
          name='analytics'),
+    path('apps_analytics',
+         views.appsAnalytics,
+         name='apps_analytics'),
+    path('apps_analytics/<int:app_id>/',
+         views.appAnalytics,
+         name='app_analytics'),
 ]
 urlpatterns += router.urls

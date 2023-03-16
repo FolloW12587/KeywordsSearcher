@@ -102,6 +102,15 @@ class KeitaroDailyAppDataAdmin(admin.ModelAdmin):
     list_filter = ('date', 'app')
 
 
+@admin.register(models.ConsoleDailyData)
+class ConsoleDailyDataAdmin(admin.ModelAdmin):
+    list_display = ('date', 'app', 'keyword',
+                    'views', 'installs', 'conversion',)
+    list_select_related = ('app', 'keyword')
+    search_fields = ('app__name', 'keyword__name',)
+    list_filter = ('date', 'app')
+
+
 @admin.register(models.ASOWorldRegion)
 class ASOWorldRegionAdmin(admin.ModelAdmin):
     list_display = ('code', 'name',)
@@ -115,6 +124,7 @@ class ASOWorldRegionAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request: HttpRequest, obj=None) -> bool:
         return False
+
 
 class ASOWorldOrderKeywordDataInline(admin.TabularInline):
     model = models.ASOWorldOrderKeywordData

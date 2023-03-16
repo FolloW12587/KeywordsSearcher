@@ -1,0 +1,27 @@
+{% extends "kwfinder/base.html" %}
+{% load static %}
+{% block title %}Apps stats{% endblock %}
+{% block header %}
+<div class="header--title">Analytics for apps</div>
+{% endblock %}
+
+{% block content %}
+<table border="1" class="apps_table" id="table">
+    <tbody>
+        <tr class="header_row">
+            <th>Номер</th>
+            <th>Название</th>
+            <th>Активно</th>
+            <th>Регион</th>
+        </tr>
+        {% for app in apps %}
+            <tr class="row" onclick="window.location='/apps_analytics/{{ app.id }}/';">
+                <td>{{ app.num }}</td>
+                <td> <img src="{{ app.icon }}" width="50" height="50"> {{ app.name }}</td>
+                <td>{{ app.is_active }}</td>
+                <td> {{ app.app_type.asoworld_region }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
