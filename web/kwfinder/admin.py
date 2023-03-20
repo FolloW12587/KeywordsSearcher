@@ -19,10 +19,15 @@ class AppTypeAdmin(admin.ModelAdmin):
 
 @admin.register(models.App)
 class AppAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'num', 'app_type', 'is_active')
+    list_display = ('name', 'num', 'app_type', 'is_active')
     list_select_related = ('app_type',)
     search_fields = ('name', 'num',)
     list_filter = ('is_active',)
+    actions = ('unban',)
+
+    @admin.action(description="Отметить как активное")
+    def unban(self, request, queryset):
+        queryset.update(is_active=True)
 
 
 @admin.register(models.Keyword)
