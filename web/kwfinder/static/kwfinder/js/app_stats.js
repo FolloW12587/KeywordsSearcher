@@ -136,12 +136,6 @@ function updateTable() {
         })
         table.getElementsByTagName("tbody")[0].appendChild(row);
     })
-    params.date_range.forEach(app => {
-        // let row = document.createElement("tr");
-        // row.innerHTML = `<td>${app.num}</td><td><img src="${app.icon}" width="50" height="50">${app.name}</td>
-        //     <td>${boolRepresent(app.is_active)}</td><td>${getAppRegionTypeById(app.app_type)}</td><td>Подробнее</td>`;
-        // table.getElementsByTagName("tbody")[0].appendChild(row);
-    })
 }
 
 function updateButtons() {

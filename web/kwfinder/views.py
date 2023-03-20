@@ -1,7 +1,9 @@
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
+from django.views.decorators.csrf import csrf_exempt
+import json
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters
@@ -165,3 +167,61 @@ def appAnalytics(request, app_id: int):
         raise Http404("App does not exist")
     keywords = models.Keyword.objects.filter(app_type=app.app_type)
     return render(request, 'kwfinder/app_stats.html', {'app': app, "keywords": keywords})
+
+
+@login_required
+def consoleDataAdd(request, app_id: int):
+    try:
+        app = models.App.objects.get(pk=app_id)
+    except models.App.DoesNotExist:
+        raise Http404("App does not exist")
+    keywords = models.Keyword.objects.filter(app_type=app.app_type)
+    return render(request, 'kwfinder/console_data_add.html', {'app': app, "keywords": keywords})
+
+
+# @csrf_exempt
+@login_required
+def consoleDataAddSave(request, app_id: int):
+    if request.method != 'POST':
+        return JsonResponse({"error": "Only POST method is allowed!"}, status=404)
+
+    try:
+        app = models.App.objects.get(pk=app_id)
+    except models.App.DoesNotExist:
+        return JsonResponse({"error": "App does not exist"}, status=404)
+    # keywords = models.Keyword.objects.filter(app_type=app.app_type)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Data is not a valid json"}, status=400)
+
+    try:
+        data = data['data']
+
+        for d in data:
+            try:
+                keyword = models.Keyword.objects.get(id=d['keyword__id'])
+            except models.Keyword.DoesNotExist:
+                continue
+
+            console_data = models.ConsoleDailyData.objects.filter(
+                app=app,
+                keyword=keyword,
+                date=d['date']
+            ).first()
+
+            if not console_data:
+                console_data = models.ConsoleDailyData(
+                    app=app,
+                    keyword=keyword,
+                    date=d['date']
+                )
+
+            console_data.views = d['views']
+            console_data.installs = d['installs']
+            console_data.save()
+
+    except (ValueError, KeyError):
+        return JsonResponse({"error": "Data is not valid"}, status=400)
+
+    return JsonResponse({"success": True})

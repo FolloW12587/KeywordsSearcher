@@ -1445,32 +1445,48 @@ button.keyword_picker_modal {
 
 
 /* Apps analytics */
-.apps_table {
+.header_info {
+    display: flex;
+}
+
+.header_info_link {
+    margin-left: auto;
+    color: blue;
+}
+
+.apps_table,
+.console_data_add_table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
     width: 100%;
 }
 
 .apps_table td,
-.apps_table th {
+.apps_table th,
+.console_data_add_table td,
+.console_data_add_table th {
     border: 1px solid #dddddd;
     text-align: left;
     padding: 8px;
 }
 
-.apps_table th {
+.apps_table th,
+.console_data_add_table th {
     font-weight: bold;
 }
 
-.apps_table tr.row:nth-child(even) {
+.apps_table tr.row:nth-child(even),
+.console_data_add_table tr.row:nth-child(even) {
     background-color: #dddddd;
 }
 
-.apps_table tr.row {
+.apps_table tr.row,
+.console_data_add_table tr.row {
     cursor: pointer;
 }
 
-.apps_table tr.row:first {
+.apps_table tr.row:first,
+.console_data_add_table tr.row:first {
     cursor: default;
 }
 
@@ -1484,10 +1500,11 @@ button.keyword_picker_modal {
     margin-left: auto;
 }
 
-.load_data__button {
+.load_data__button, .save_data__button {
     height: 44px;
     padding: 0 18px;
     border-radius: 5px;
+    margin-left: 5px;
 }
 
 .load_state {
