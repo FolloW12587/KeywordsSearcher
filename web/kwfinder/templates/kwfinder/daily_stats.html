@@ -20,48 +20,6 @@
       <div class="date_range--label">Диапазон дат: </div>
       <div class="date_range--picker"></div>
     </div>
-    <div class="platform">
-      <div class="platform_chosen">
-        <div class="platform_chosen--label">Платформа: </div>
-        <div class="button platform_picker--opener">
-          <div class="button--title">
-            Не выбрано
-            <i class="arrow down"></i>
-          </div>
-        </div>
-      </div>
-      <ul class="platform_picker platform_picker__hidden dropdown">
-      </ul>
-    </div>
-    <div class="app_type">
-      <div class="app_type_chosen">
-        <div class="app_type_chosen--label">Тип приложения: </div>
-        <div class="button app_type_picker--opener">
-          <div class="button--title">
-            Не выбрано
-            <i class="arrow down"></i>
-          </div>
-        </div>
-      </div>
-      <ul class="app_type_picker app_type_picker__hidden dropdown"></ul>
-    </div>
-    <div class="filter_keywords">
-      <div class="filter_keywords--label">Фильтр ключей: </div>
-      <div class="filter_keywords--picker">
-        <div class="button filter_keywords_picker--opener">
-          <div class="button--title">
-            Показывать все
-            <i class="arrow down"></i>
-          </div>
-        </div>
-        <ul class="filter_keywords_picker filter_keywords_picker__hidden dropdown">
-          <li tabIndex="-1" class="dropdown--element filter_keywords_picker--element" data-value="">Показывать все</li>
-          <li tabIndex="-1" class="dropdown--element filter_keywords_picker--element" data-value="1">С данными за период</li>
-          <li tabIndex="-1" class="dropdown--element filter_keywords_picker--element" data-value="2">С данными по выбранным прилкам за период</li>
-          <!-- <li tabIndex="-1" class="dropdown--element filter_keywords_picker--element" data-value="=0">Без данных за период</li> -->
-        </ul>
-      </div>
-    </div>
     <div class="offset">
       <div class="offset--label">Боковые отступы: <strong class="offset--value">80</strong>%</div>
       <div class="offset--picker offset_picker">
@@ -80,7 +38,9 @@
     </div>
     <input type="text" class="app_finder">
     <ul class="app_list app_list__hidden dropdown">
-      <li tabIndex="-1" class="dropdown--element"><img class="spinner" src="{% static "kwfinder/img/spinner.gif" %}" style="margin: 0 auto;"></li>
+      {% for app in apps %}
+        <li tabIndex="-1" class="app_list--element dropdown--element" data-id="{{ app.id }}">[{{ app.num }}] {{ app.name }}</li>
+      {% endfor %}
     </ul>
   </div>
   <div class="keywords">

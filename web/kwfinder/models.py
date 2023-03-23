@@ -25,6 +25,8 @@ class ASOWorldRegion(models.Model):
     is_app_store_supported = models.BooleanField("Поддерживается в App Store")
     is_google_play_supported = models.BooleanField(
         "Поддерживается в Google Play")
+    google_store_link_attributes = models.TextField(
+        "Аттрибуты для поиска в гугл сторе", null=True, blank=True)
 
     class Meta:
         verbose_name = "Регион (ASO World)"
@@ -34,35 +36,38 @@ class ASOWorldRegion(models.Model):
         return f"[{self.code}] {self.name}"
 
 
-class AppType(models.Model):
-    """ Модель, описывающая тип приложения """
-    id = models.AutoField("id", primary_key=True)
-    name = models.CharField("Название", max_length=255)
-    google_store_link_attributes = models.TextField(
-        "Аттрибуты для поиска в гугл сторе")
-    apple_store_link_attributes = models.TextField(
-        "Аттрибуты для поиска в эпл сторе")
-    asoworld_region = models.ForeignKey(
-        ASOWorldRegion, on_delete=models.CASCADE, verbose_name="Регион (ASO World)")
+# class AppType(models.Model):
+#     """ Модель, описывающая тип приложения """
+#     id = models.AutoField("id", primary_key=True)
+#     name = models.CharField("Название", max_length=255)
+#     google_store_link_attributes = models.TextField(
+#         "Аттрибуты для поиска в гугл сторе")
+#     apple_store_link_attributes = models.TextField(
+#         "Аттрибуты для поиска в эпл сторе")
+#     asoworld_region = models.ForeignKey(
+#         ASOWorldRegion, on_delete=models.CASCADE, verbose_name="Регион (ASO World)")
 
-    class Meta:
-        verbose_name = "Тип приложения"
-        verbose_name_plural = "Типы приложений"
+#     class Meta:
+#         verbose_name = "Тип приложения"
+#         verbose_name_plural = "Типы приложений"
 
-    def __str__(self):
-        return self.name
+#     def __str__(self):
+#         return self.name
 
 
 class App(models.Model):
     """ Модель, описывающая приложение """
     id = models.AutoField("id", primary_key=True)
     name = models.CharField("Название", max_length=255)
-    # link = models.TextField("Ссылка в сторе")
     package_id = models.CharField("ID пакета", max_length=255, unique=True)
+    
     platform = models.ForeignKey(
         AppPlatform, verbose_name="Платформа", on_delete=models.CASCADE)
-    app_type = models.ForeignKey(
-        AppType, verbose_name="Тип", on_delete=models.CASCADE)
+    region = models.ForeignKey(
+        ASOWorldRegion, on_delete=models.CASCADE,
+        verbose_name="Регион")
+    keywords = models.ManyToManyField("Keyword")
+    
     is_active = models.BooleanField("Активно", default=True, blank=True)
     icon = models.ImageField(
         "Иконка", upload_to="app_icons/", null=True, blank=True)
@@ -87,15 +92,16 @@ class Keyword(models.Model):
     """ Модель, описывабщая ключевое слово """
     id = models.AutoField("id", primary_key=True)
     name = models.CharField("Название", max_length=255)
-    app_type = models.ForeignKey(
-        AppType, verbose_name="Тип", on_delete=models.CASCADE)
+    region = models.ForeignKey(
+        ASOWorldRegion, on_delete=models.CASCADE,
+        verbose_name="Регион")
 
     class Meta:
         verbose_name = "Ключевое слово"
         verbose_name_plural = "Ключевые слова"
 
     def __str__(self):
-        return self.name
+        return f"[{self.region.code}] {self.name}"
 
 
 class AppPositionScriptRun(models.Model):
@@ -105,8 +111,6 @@ class AppPositionScriptRun(models.Model):
     started_at = models.DateTimeField("Старт", auto_now_add=True)
     ended_at = models.DateTimeField(
         "Завершился", null=True, default=None, blank=True)
-    app_type = models.ForeignKey(
-        AppType, verbose_name="Тип", on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Запуск скрипта (поиск позиций приложений)"

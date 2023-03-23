@@ -28,6 +28,7 @@ const closeModalButtons = document.querySelectorAll('[data-close-button]');
 const overlay = document.getElementById('overlay');
 
 document.addEventListener("DOMContentLoaded", () => {
+    datepicker.install("single");
     datepicker.render();
 
     keyword.addEventListener('change', keywordChange);

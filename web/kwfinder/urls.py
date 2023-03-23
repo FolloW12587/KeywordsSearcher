@@ -6,7 +6,6 @@ from . import views
 
 router = DefaultRouter()
 router.register('apps', views.AppView, basename='apps')
-router.register('app_types', views.AppTypeView, basename='app_types')
 router.register('app_platforms', views.AppPlatformView,
                 basename='app_platforms')
 router.register('keywords', views.KeywordView, basename='keywords')

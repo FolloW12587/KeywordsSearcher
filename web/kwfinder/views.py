@@ -11,22 +11,15 @@ from rest_framework import filters
 from . import models, serializers
 
 
-class AppTypeView(ReadOnlyModelViewSet):
-    """ View for output list of app types """
-    queryset = models.AppType.objects.all()
-    serializer_class = serializers.AppTypeSerializer
-    permission_classes = [IsAuthenticated, ]
-
-
 class AppView(ReadOnlyModelViewSet):
-    """ View for output list of apps. It has filters by `app_type__id` 
-    and `platform__id` fields and it can be searched by its name. """
+    """ View for output list of apps. It has filters by `platform__id` field
+      and it can be searched by its name. """
     queryset = models.App.objects.all()
     serializer_class = serializers.AppSerializer
     permission_classes = [IsAuthenticated, ]
     filter_backends = [DjangoFilterBackend,
                        filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['app_type__id', 'platform__id', ]
+    filterset_fields = ['platform__id', ]
     search_fields = ['name', ]
     ordering_fields = ['name', ]
 
@@ -40,12 +33,12 @@ class AppPlatformView(ReadOnlyModelViewSet):
 
 class KeywordView(ReadOnlyModelViewSet):
     """ View for output list of keywords. It has filters 
-    by `app_type__id` field and it can be searched by its name. """
+    by `region` field and it can be searched by its name. """
     queryset = models.Keyword.objects.all()
     serializer_class = serializers.KeywordSerializer
     permission_classes = [IsAuthenticated, ]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, ]
-    filterset_fields = ['app_type__id', ]
+    filterset_fields = ['region', ]
     search_fields = ['name', ]
 
     def get_queryset(self):
@@ -149,7 +142,8 @@ class ASOWorldOrderKeywordDataView(ReadOnlyModelViewSet):
 @login_required
 def dailyAnalytics(request):
     """ View for showing daily analytics page """
-    return render(request, 'kwfinder/daily_stats.html')
+    apps = models.App.objects.all()
+    return render(request, 'kwfinder/daily_stats.html', {'apps': apps})
 
 
 @login_required
@@ -165,7 +159,7 @@ def appAnalytics(request, app_id: int):
         app = models.App.objects.get(pk=app_id)
     except models.App.DoesNotExist:
         raise Http404("App does not exist")
-    keywords = models.Keyword.objects.filter(app_type=app.app_type)
+    keywords = app.keywords.all()
     return render(request, 'kwfinder/app_stats.html', {'app': app, "keywords": keywords})
 
 
@@ -175,7 +169,7 @@ def consoleDataAdd(request, app_id: int):
         app = models.App.objects.get(pk=app_id)
     except models.App.DoesNotExist:
         raise Http404("App does not exist")
-    keywords = models.Keyword.objects.filter(app_type=app.app_type)
+    keywords = app.keywords.all()
     return render(request, 'kwfinder/console_data_add.html', {'app': app, "keywords": keywords})
 
 
@@ -189,7 +183,7 @@ def consoleDataAddSave(request, app_id: int):
         app = models.App.objects.get(pk=app_id)
     except models.App.DoesNotExist:
         return JsonResponse({"error": "App does not exist"}, status=404)
-    # keywords = models.Keyword.objects.filter(app_type=app.app_type)
+
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:

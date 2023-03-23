@@ -1,29 +1,14 @@
 import logging
-from django.core.management.base import BaseCommand, CommandParser
+from django.core.management.base import BaseCommand
 
 from src.keywords import getKeywordsStats
-from web.kwfinder import models
 
 
 logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Uploads and saves stats for apps for keywords \
-        for app type with given app_type_id'
-
-    def add_arguments(self, parser: CommandParser) -> None:
-        parser.add_argument("app_type_id", type=int)
+    help = 'Uploads and saves stats for apps by keywords'
 
     def handle(self, *args, **options):
-        try:
-            models.AppType.objects.get(id=options['app_type_id'])
-        except models.AppType.DoesNotExist:
-            logger.error(
-                f"App type with id {options['app_type_id']} doesn't exists!")
-            return
-        except Exception as e:
-            logger.exception(e)
-            return
-
-        getKeywordsStats(app_type_id=options['app_type_id'])
+        getKeywordsStats()

@@ -38,13 +38,13 @@ class ASOWorldAPIService:
             bool: Is app added successfully or not
         """
         data = {
-            "region": app.app_type.asoworld_region.code,
+            "region": app.region.code,
             "appId": app.package_id,
             "platform": app.platform.asoworld_id
         }
         return self.__add_app(data)
 
-    def add_keyword(self, app: models.App, keyword: str) -> bool:
+    def add_keyword(self, app: models.App, keyword: models.Keyword) -> bool:
         """ Adds `keyword` to ASO World app, that is connected to `models.App`.
 
         Args:
@@ -55,10 +55,10 @@ class ASOWorldAPIService:
             bool: True if success
         """
         data = {
-            "region": app.app_type.asoworld_region.code,
+            "region": keyword.region.code,
             "appId": app.package_id,
             "platform": app.platform.asoworld_id,
-            "keyword": keyword
+            "keyword": keyword.name
         }
         return self.__add_keyword(data)
 
@@ -80,7 +80,6 @@ class ASOWorldAPIService:
         if app:
             data["platform"] = app.platform.asoworld_id
             data["appId"] = app.package_id
-            data["region"] = app.app_type.asoworld_region.code
 
         return self.__order_list(data)
 

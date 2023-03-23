@@ -3,9 +3,10 @@ from rest_framework import serializers
 from . import models
 
 
-class AppTypeSerializer(serializers.ModelSerializer):
+
+class ASOWorldRegionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.AppType
+        model = models.ASOWorldRegion
         fields = '__all__'
 
 
@@ -35,7 +36,7 @@ class DailyAggregatedPositionDataSerializer(serializers.ModelSerializer):
 
 class AppPositionScriptRunDataSerializer(serializers.ModelSerializer):
     datetime = serializers.DateTimeField(
-        source="run.started_at", format="%Y-%m-%d %H:%M:%S")
+        source="run.started_at", format="%Y-%m-%d %H:%M:%S") # type: ignore
 
     class Meta:
         model = models.AppPositionScriptRunData

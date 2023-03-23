@@ -4,6 +4,9 @@
 {% block header_name %} Apps analytics {% endblock %}
 
 {% block content %}
+<div class="header_info">
+    <img src="/static/kwfinder/img/add-plus-symbol.png" alt="add-plus-symbol" class="add-symbol" style="margin-left: auto;">
+</div>
 <table border="1" class="apps_table" id="table">
     <tbody>
         <tr class="header_row">
@@ -22,7 +25,7 @@
                     {{ app.name }}
                 </td>
                 <td>{{ app.is_active }}</td>
-                <td> {{ app.app_type.asoworld_region }}</td>
+                <td>{{ app.region }}</td>
             </tr>
         {% endfor %}
     </tbody>

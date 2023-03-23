@@ -17,42 +17,16 @@ const load_data_button = document.getElementById("load_data__button");
 const save_data_button = document.getElementById("save_data__button");
 const title = document.getElementsByClassName("title")[0];
 const csrftoken = getCookie('csrftoken');
-// const closeModalButtons = document.querySelectorAll('[data-close-button]');
-// const overlay = document.getElementById('overlay');
 
 document.addEventListener("DOMContentLoaded", () => {
+    datepicker.install("single");
     datepicker.render();
 
     load_data_button.addEventListener('click', loadData);
     save_data_button.addEventListener('click', saveData);
     updateButtons();
 
-    // overlay.addEventListener('click', () => {
-    //     const modals = document.querySelectorAll('.modal.active')
-    //     modals.forEach(modal => {
-    //         closeModal(modal)
-    //     })
-    // })
-
-    // closeModalButtons.forEach(button => {
-    //     button.addEventListener('click', () => {
-    //         const modal = button.closest('.modal')
-    //         closeModal(modal)
-    //     })
-    // })
 });
-
-// function closeModal(modal) {
-//     if (modal == null) return
-//     modal.classList.remove('active')
-//     overlay.classList.remove('active')
-// }
-
-// function openModal(modal) {
-//     if (modal == null) return
-//     modal.classList.add('active')
-//     overlay.classList.add('active')
-// }
 
 function updateTitle() {
     title.innerHTML = `[${app_num}] ${app_name} - ${params.date_selected.format("yyyy-mm-dd")}`;

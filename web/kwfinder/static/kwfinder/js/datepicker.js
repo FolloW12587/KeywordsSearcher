@@ -15,6 +15,10 @@ export var datepicker = {
   hovered: null,
   currentMonth: new Date().getMonth(),
   currentYear: new Date().getFullYear(),
+  type: "range", // "range" or "single"
+  install: (type = "range") => {
+    datepicker.type = type;
+  },
   render: () => {
     removeEvents(datepicker.events.eventHandlers);
     datepicker.events.eventHandlers = [];
@@ -233,9 +237,11 @@ class DateDropdown extends Obj {
         ${new DateRangePicker().render()}
 
         <ul class="DateDropdown_list">
-          ${dateRangeValues.map(r => {
-      return new PickRange(r).render();
-    }).join("")}
+          ${dateRangeValues
+            .filter(r => datepicker.type == "range" || r.type == datepicker.type)
+            .map(r => {
+              return new PickRange(r).render();
+            }).join("")}
         </ul>
       </div>
     `;
@@ -564,7 +570,11 @@ class DateRangePicker__Date extends Obj {
     const target = e.currentTarget;
     const data_source = target.getAttribute("data-source").split("_");
     const date = new Date(data_source[0], data_source[1], data_source[2]);
-    if (datepicker.isSelecting) {
+    if (datepicker.type == "single") {
+      datepicker.date.selected = date;
+      datepicker.date.from = date;
+      datepicker.date.to = date;
+    } else if (datepicker.isSelecting) {
       datepicker.isSelecting = false;
       datepicker.date.from = datepicker.pending.from;
       datepicker.date.to = datepicker.pending.to;
@@ -574,6 +584,7 @@ class DateRangePicker__Date extends Obj {
       datepicker.pending.from = date;
       datepicker.pending.to = date;
     }
+    datepicker.pickedRange = null;
     e.stopPropagation();
     datepicker.render();
   }
@@ -825,6 +836,7 @@ class PickRange extends Obj {
 const dateRangeValues = [
   {
     title: 'Сегодня',
+    type: "single",
     value: () => {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
@@ -836,6 +848,7 @@ const dateRangeValues = [
   },
   {
     title: 'Вчера',
+    type: "single",
     value: () => {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
@@ -851,6 +864,7 @@ const dateRangeValues = [
   },
   {
     title: 'Неделя',
+    type: "range",
     value: () => {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
@@ -866,6 +880,7 @@ const dateRangeValues = [
   },
   {
     title: 'Месяц',
+    type: "range",
     value: () => {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
@@ -881,6 +896,7 @@ const dateRangeValues = [
   },
   {
     title: 'Квартал',
+    type: "range",
     value: () => {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
@@ -896,6 +912,7 @@ const dateRangeValues = [
   },
   {
     title: 'Год',
+    type: "range",
     value: () => {
       const today = new Date()
       today.setHours(0, 0, 0, 0)

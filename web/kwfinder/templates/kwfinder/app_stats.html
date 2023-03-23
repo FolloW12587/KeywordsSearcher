@@ -21,7 +21,7 @@
         <select name="keyword" id="keyword" class="keywords_select">
             <option hidden value selected disabled>-- Выберите ключ --</option>
             {% for keyword in keywords %}
-            <option value="{{ keyword.id }}">{{ keyword.name }}</option>
+                <option value="{{ keyword.id }}">[{{ keyword.region.code }}] {{ keyword.name }}</option>
             {% endfor %}
         </select>
         <div class="load_data">

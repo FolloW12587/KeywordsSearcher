@@ -840,6 +840,11 @@ code {
     min-width: 250px;
 }
 
+.dropdown--element__filtered {
+    color: #fff;
+    background-color: #3EACBA;
+}
+
 .dropdown--element:hover {
     background: #f8f8f8;
     border: solid 1px #ebebed;
@@ -1513,4 +1518,12 @@ button.keyword_picker_modal {
 
 .hidden {
     display: none;
+}
+
+
+.add-symbol {
+    width: 30px;
+    height: 30px;
+    margin: 5px;
+    cursor: pointer;
 }

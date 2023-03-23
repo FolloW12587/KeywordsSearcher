@@ -8,7 +8,6 @@
     const app_id = {{ app.id }};
     const app_name = "{{ app.name }}";
     const app_num = {{ app.num }};
-    const app_type_id = {{ app.app_type.id }};
     const keywords = {
         {% for keyword in keywords %}
             {{ keyword.id }}: "{{ keyword.name }}",
@@ -39,25 +38,7 @@
             <th>Ключ</th>
             <th>Посетители</th>
             <th>Установки</th>
-
-            <!-- <th>Cами</th>
-            <th colspan="3">Консоль</th>
-            <th>ASO World</th> -->
         </tr>
-        <!-- <tr class="row">
-            <td>Blaze</td>
-            <td><input type="text" name="views" id="views_1" value="1"></td>
-            <td><input type="text" name="installs" id="installs_1" value="0"></td>
-        </tr> -->
     </tbody>
 </table>
-<!-- <div class="modal" id="modal-keyword">
-    <div class="modal-header">
-        <div class="title"></div>
-        <button data-close-button class="close-button">&times;</button>
-    </div>
-    <div class="modal-body">
-    </div>
-</div>
-<div id="overlay"></div> -->
 {% endblock %}

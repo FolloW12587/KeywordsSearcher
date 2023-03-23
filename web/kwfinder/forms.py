@@ -5,4 +5,7 @@ from . import models
 
 class CsvImportForm(forms.Form):
     csv_file = forms.FileField()
-    app_type = forms.ModelChoiceField(queryset=models.AppType.objects.all())
+    region = forms.ModelChoiceField(
+        queryset=models.ASOWorldRegion.objects.all())
+    app = forms.ModelChoiceField(
+        queryset=models.App.objects.all())

@@ -12,15 +12,10 @@ class AppPlatformAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
 
 
-@admin.register(models.AppType)
-class AppTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'asoworld_region')
-
-
 @admin.register(models.App)
 class AppAdmin(admin.ModelAdmin):
-    list_display = ('name', 'num', 'app_type', 'is_active')
-    list_select_related = ('app_type',)
+    list_display = ('name', 'num', 'region', 'is_active')
+    list_select_related = ('region',)
     search_fields = ('name', 'num',)
     list_filter = ('is_active',)
     actions = ('unban',)
@@ -32,10 +27,10 @@ class AppAdmin(admin.ModelAdmin):
 
 @admin.register(models.Keyword)
 class KeywordAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'app_type')
-    list_select_related = ('app_type',)
+    list_display = ('id', 'name', 'region')
+    list_select_related = ('region',)
     search_fields = ('name',)
-    list_filter = ('app_type',)
+    list_filter = ('region',)
 
     change_list_template = "kwfinder/keywords_changelist.html"
 
@@ -51,22 +46,29 @@ class KeywordAdmin(admin.ModelAdmin):
             form = forms.CsvImportForm(request.POST, request.FILES)
             if form.is_valid():
                 csv_file = request.FILES["csv_file"]
-                app_type_id = request.POST['app_type']
-                app_type = models.AppType.objects.get(id=app_type_id)
+                region_id = request.POST['region']
+                app_id = request.POST['app']
 
-                keywords = []
+                region = models.ASOWorldRegion.objects.get(id=region_id)
+                app = models.App.objects.get(id=app_id)
+
                 for line in csv_file:
                     keyword = line.strip().decode("utf-8")
-                    if keyword == '' or models.Keyword.objects.filter(name=keyword).count() > 0:
+                    if keyword == '':
                         continue
 
-                    keywords.append(models.Keyword(
-                        name=keyword,
-                        app_type=app_type
-                    ))
+                    keyword_db = models.Keyword.objects\
+                        .filter(name=keyword).first()
 
-                models.Keyword.objects.bulk_create(keywords)
-                self.message_user(request, "Your csv file has been imported")
+                    if keyword_db == None:
+                        keyword_db = models.Keyword.objects.create(
+                            name=keyword, region=region)
+                        
+                    
+                    if not keyword_db.app_set.contains(app): # type: ignore
+                        app.keywords.add(keyword_db)
+                        
+                self.message_user(request, "Your csv file has been imported.")
                 return redirect("..")
         form = forms.CsvImportForm()
         payload = {"form": form}
@@ -77,9 +79,7 @@ class KeywordAdmin(admin.ModelAdmin):
 
 @admin.register(models.AppPositionScriptRun)
 class AppPositionScriptRunAdmin(admin.ModelAdmin):
-    list_display = ('id', 'app_type', 'started_at', 'ended_at')
-    list_select_related = ('app_type',)
-    list_filter = ('app_type',)
+    list_display = ('id', 'started_at', 'ended_at')
 
 
 @admin.register(models.AppPositionScriptRunData)
@@ -125,9 +125,6 @@ class ASOWorldRegionAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None) -> bool:
-        return False
-
-    def has_change_permission(self, request: HttpRequest, obj=None) -> bool:
         return False
 
 
