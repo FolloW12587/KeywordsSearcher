@@ -163,6 +163,7 @@ function removeApp(e) {
     params.apps.chosen = removeObjFromListById(app_id, params.apps.chosen);
     
     appObj.remove();
+    params.keywords.chosen = [];
     getKeywords();
 }
 
@@ -223,6 +224,7 @@ async function getKeywords(url, search_str) {
         }
     }
     params.keywords.isLoading = true;
+    updateKeywordsController();
     let response = await fetch(url)
         .then((response) => {
             return response.json();
