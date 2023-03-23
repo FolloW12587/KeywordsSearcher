@@ -66,7 +66,7 @@ class App(models.Model):
     region = models.ForeignKey(
         ASOWorldRegion, on_delete=models.CASCADE,
         verbose_name="Регион")
-    keywords = models.ManyToManyField("Keyword")
+    keywords = models.ManyToManyField("Keyword", verbose_name="Ключевые слова")
     
     is_active = models.BooleanField("Активно", default=True, blank=True)
     icon = models.ImageField(

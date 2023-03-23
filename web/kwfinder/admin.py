@@ -19,6 +19,7 @@ class AppAdmin(admin.ModelAdmin):
     search_fields = ('name', 'num',)
     list_filter = ('is_active',)
     actions = ('unban',)
+    filter_horizontal = ('keywords',)
 
     @admin.action(description="Отметить как активное")
     def unban(self, request, queryset):
@@ -87,7 +88,7 @@ class AppPositionScriptRunDataAdmin(admin.ModelAdmin):
     list_display = ('id', 'run', 'keyword', 'app', 'position')
     list_select_related = ('run', 'app', 'keyword')
     search_fields = ('keyword__name',)
-    list_filter = ('run', 'app', 'keyword',)
+    list_filter = ('app', 'keyword',)
 
 
 @admin.register(models.DailyAggregatedPositionData)
