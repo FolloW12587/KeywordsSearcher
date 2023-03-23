@@ -21,14 +21,15 @@ def upload_regions():
 
     with open(path, 'r') as regions_file:
         for line in regions_file:
+            line_to_split = line[:-1]
             region = models.ASOWorldRegion.objects.filter(
-                code=line.split(";")[0]
+                code=line_to_split.split(";")[0]
             ).first()
 
             if region:
                 continue
 
-            region = models.ASOWorldRegion(*line.split(";"))
+            region = models.ASOWorldRegion(*line_to_split.split(";"))
             region.is_app_store_supported = region.is_app_store_supported == 'true'
             region.is_google_play_supported = region.is_google_play_supported == 'true'
             region.save()
