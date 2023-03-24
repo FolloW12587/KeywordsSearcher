@@ -5,7 +5,7 @@ import os
 from typing import Any
 
 from web.kwfinder import models
-from web.kwfinder.services.asoworld import ASOWorldAPIService
+from web.kwfinder.controllers.asoworldAPI import ASOWorldAPIController
 
 
 logger = logging.getLogger(__name__)
@@ -37,10 +37,119 @@ def upload_regions():
     logger.info("Uploaded.")
 
 
+def update_apps_and_keywords():
+    """ Gets all keywords from ASO World. For every keyword, \
+        creates app if not exists and adds itself to it. """
+    # К сожалению, а АПИ ASO World багнут метод получения списка приложений - он вместо айдишника возвращает null.
+    # По итогу невозможно сначала обновить список приложений, а затем для каждого из них обновить ключи.
+    # Поэтому пришлось сначала получать все ключи. В них есть айдишник приложения, по которому можно уже получить инфу.
+
+    logger.info("Updating apps and keywords data.")
+    if not models.AppPlatform.objects.filter(name="Google").exists():
+        logger.error("Can't find platform with name 'Google'!")
+        return
+
+    controller = ASOWorldAPIController()
+    logger.info("Getting all keywords data.")
+    keywords = controller.get_keywords()
+    apps_cache = {}
+    apps_cache: dict[str, models.App | None]
+
+    for keyword_data in keywords:
+        app_id = keyword_data['appId']
+        if app_id not in apps_cache:
+            app = models.App.objects.filter(package_id=app_id).first()
+
+            if not app:
+                app = __create_app_from_asoworld_by_package_id(
+                    package_id=app_id, controller=controller)
+
+            apps_cache[app_id] = app
+
+        app = apps_cache[app_id]
+        if not app:
+            logger.warning(
+                f"Can't find app with id {app_id} for keyword {keyword_data['word']}!")
+            continue
+
+        keyword_name = keyword_data['word']
+        region_code = keyword_data['region']
+        region = models.ASOWorldRegion.objects.filter(
+            code=region_code).first()
+
+        if not region:
+            logger.warning(
+                f"Can't find region {region_code} for keyword {keyword_name} and app with id {app.package_id}!")
+            continue
+
+        keyword = models.Keyword.objects.filter(
+            name=keyword_name, region=region).first()
+
+        if not keyword:
+            keyword = models.Keyword(name=keyword_name, region=region)
+            keyword.save()
+            app.keywords.add(keyword)
+            continue
+
+        if not app.keywords.contains(keyword):
+            app.keywords.add(keyword)
+
+    logger.info("Updated!")
+
+
+def __create_app_from_asoworld_by_package_id(package_id: str, controller: ASOWorldAPIController | None = None) -> models.App | None:
+    """ Gets app from ASO World by given `package id` and creates it in database. 
+
+    Args:
+        package_id (str): package id which is app id in ASO World
+        controller (ASOWorldAPIController | None, optional): If `None` creates new one. Defaults to None.
+
+    Returns:
+        `models.App`, if created, else `None`.
+    """
+    platform = models.AppPlatform.objects.filter(name="Google").first()
+    if not platform:
+        logger.error("Can't find platform with name 'Google'!")
+        return None
+
+    if not controller:
+        controller = ASOWorldAPIController()
+
+    logger.info(f"Getting info from ASO World for app with id {package_id}.")
+    apps_list = controller.get_apps(appId=package_id)
+    if len(apps_list) == 0:
+        logger.warning(f"Can't find app in ASO World with id {package_id}.")
+        return None
+
+    app_data = apps_list[0]
+
+    region = models.ASOWorldRegion.objects.filter(
+        code=app_data['region']).first()
+
+    if not region:
+        logger.warning(
+            f"Can't find region {app_data['region']} for app in ASO World with id {package_id}!")
+        return None
+
+    app = models.App(
+        package_id=package_id,
+        name=app_data['appName'],
+        platform=platform,
+        region=region,
+        is_active=True,
+        num=package_id,
+        campaign_id=package_id,
+    )
+    app.save()
+
+    logger.info(f"Created app with id {package_id} and name {app.name}.")
+    return app
+
+
 def update_orders():
     """ Updates orders in database """
-    service = ASOWorldAPIService()
-    orders = service.getOrders()
+    controller = ASOWorldAPIController()
+    orders = controller.get_orders()
 
     for order_data in orders:
         order = models.ASOWorldOrder.objects.filter(
@@ -61,25 +170,6 @@ def __update_order(order: models.ASOWorldOrder, data: dict[str, Any]):
         data (dict[str, Any]): data
     """
     logger.info(f"Updating order {order.asoworld_id}.")
-
-    # match order.state, data['state']:
-    #     case models.ASOWorldOrder.ACCOUNTING, models.ASOWorldOrder.CANCELED:
-    #         order.state = data['state']
-    #         return
-    #     case models.ASOWorldOrder.PAUSED, \
-    #             models.ASOWorldOrder.CANCELED | models.ASOWorldOrder.PAUSED | models.ASOWorldOrder.ACCOUNTING:
-    #         last_paused_at = __datetime_from_timestamp(data['lastPauseTime'])
-    #         if order.last_paused_at == last_paused_at:
-    #             order.state = data['state']
-    #             return
-    #         __update_order_data(order=order, data=data)
-    #     case models.ASOWorldOrder.PAUSED | models.ASOWorldOrder.ACTIVE, _:
-    #         __update_order_data(order=order, data=data)
-    #     case state1, state2 if state1 == state2:
-    #         return
-    #     case _:
-    #         logger.warning(
-    #             f"Unexpected state change from {order.state} to {data['state']}")
 
     order.state = data['state']
 
@@ -132,7 +222,7 @@ def __update_order_keywords_data(order: models.ASOWorldOrder,
         logger.debug(
             f"No keyword {keyword}, connected for app {order.app.name}!")
         return
-    
+
     date_to_update = datetime.now(tz=timezone.utc).date() - timedelta(days=1)
 
     old_data = models.ASOWorldOrderKeywordData.objects.filter(
@@ -180,7 +270,8 @@ def __create_order(data: dict[str, Any]) -> models.ASOWorldOrder | None:
     """
     if data['platform'] != 1 or data['state'] in \
             [models.ASOWorldOrder.DRAFT, models.ASOWorldOrder.INVALID, models.ASOWorldOrder.PACKAGE]:
-        logger.debug(f"Skipping. Platform {data['platform']}, state {data['state']}.")
+        logger.debug(
+            f"Skipping. Platform {data['platform']}, state {data['state']}.")
         return
 
     logger.info(f"Creating order instance with id {data['_id']}.")

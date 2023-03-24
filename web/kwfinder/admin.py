@@ -64,9 +64,10 @@ class KeywordAdmin(admin.ModelAdmin):
                     if keyword_db == None:
                         keyword_db = models.Keyword.objects.create(
                             name=keyword, region=region)
-                        
+                        app.keywords.add(keyword_db)
+                        continue
                     
-                    if not keyword_db.app_set.contains(app): # type: ignore
+                    if not app.keywords.contains(keyword):
                         app.keywords.add(keyword_db)
                         
                 self.message_user(request, "Your csv file has been imported.")

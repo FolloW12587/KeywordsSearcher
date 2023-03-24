@@ -3,15 +3,13 @@ import os
 import requests
 from typing import Any, Callable
 
-from web.kwfinder import models
-
 
 logger = logging.getLogger(__name__)
 
 
 class ASOWorldAPIService:
     """ Class to connect to asoworld """
-    PAGE_SIZE = 1000
+    PAGE_SIZE = 500
 
     def __init__(self) -> None:
         assert os.getenv("ASOWORLD_TOKEN"),\
@@ -28,63 +26,52 @@ class ASOWorldAPIService:
             return f(*args, **kwargs)
         return wrapper
 
-    def add_app(self, app: models.App) -> bool:
-        """ Adds `app` to ASO World
+    @__apiMethod
+    def app_list(self, data: dict[str, Any]) -> list[dict[str, Any]]:
+        """ ASO World API method to get app's list from console with given `data`.
 
         Args:
-            app (App): App to add to ASO World
+            data (dict[str, Any]): Must have "pageSize" key in it.
+                Optional can be "appName", "appId", "platform".
 
         Returns:
-            bool: Is app added successfully or not
+            bool: Is request succeded or not.
         """
-        data = {
-            "region": app.region.code,
-            "appId": app.package_id,
-            "platform": app.platform.asoworld_id
-        }
-        return self.__add_app(data)
+        assert "pageSize" in data, "Incorrect data: pageSize must be set"
 
-    def add_keyword(self, app: models.App, keyword: models.Keyword) -> bool:
-        """ Adds `keyword` to ASO World app, that is connected to `models.App`.
+        endpoint = "App/list"
+        headers = self.__getAuthorizationHeader()
+        page = 0
+        count = 1
 
-        Args:
-            app (models.App): App to add keyword to
-            keyword (str): keyword to add
+        output = []
+        while page * self.PAGE_SIZE < count:
+            logger.info(f"Page {page}.")
+            data['page'] = page
+            r = requests.post(f"{self._host}/{endpoint}",
+                              data=data, headers=headers)
 
-        Returns:
-            bool: True if success
-        """
-        data = {
-            "region": keyword.region.code,
-            "appId": app.package_id,
-            "platform": app.platform.asoworld_id,
-            "keyword": keyword.name
-        }
-        return self.__add_keyword(data)
+            if r.status_code != 200:
+                logger.error(
+                    f"Getting app list from ASO World with data {data} ended with status code {r.status_code}. Message: {r.text}")
+                return output
 
-    def getOrders(self, app: models.App | None = None) -> list[dict[str, Any]]:
-        """ Gets list of orders in ASO World
+            response_data = r.json()
+            if "P" not in response_data:
+                logger.error(
+                    f"Getting app list from ASO World with data {data} ended with status code {r.status_code} but haven't got 'P' in data. \
+                        Message: {r.text}")
+                return output
 
-        Args:
-            app (models.App | None): App to get orders for. If None, returns all orders.
+            count = response_data['P']['count']
+            output += response_data['P']['list']
+            page += 1
 
-        Returns:
-            list[dict[str, Any]]: List of orders
-        """
-        data: dict[str, Any]
-        data = {
-            "page": 1,
-            "pageSize": self.PAGE_SIZE
-        }
-
-        if app:
-            data["platform"] = app.platform.asoworld_id
-            data["appId"] = app.package_id
-
-        return self.__order_list(data)
+        logger.info(f"Got {len(output)} apps.")
+        return output
 
     @__apiMethod
-    def __add_app(self, data: dict[str, Any]) -> bool:
+    def add_app(self, data: dict[str, Any]) -> bool:
         """ASO World API method to add app to console with given `data`.
 
         Args:
@@ -93,6 +80,10 @@ class ASOWorldAPIService:
         Returns:
             bool: Is request succeded or not.
         """
+        assert "region" in data, "Incorrect data: region must be set"
+        assert "appId" in data, "Incorrect data: appId must be set"
+        assert "platform" in data, "Incorrect data: platform must be set"
+
         endpoint = "App/add"
         headers = self.__getAuthorizationHeader()
         r = requests.post(f"{self._host}/{endpoint}",
@@ -106,7 +97,51 @@ class ASOWorldAPIService:
         return True
 
     @__apiMethod
-    def __add_keyword(self, data: dict[str, Any]) -> bool:
+    def keyword_list(self, data: dict[str, Any]) -> list[dict[str, Any]]:
+        """ ASO World API method to get app's list from console with given `data`.
+
+        Args:
+            data (dict[str, Any]): Must have "pageSize" key in it.
+                Optional can be "region", "appId", "platform", "word".
+
+        Returns:
+            bool: Is request succeded or not.
+        """
+        assert "pageSize" in data, "Incorrect data: pageSize must be set"
+
+        endpoint = "Keyword/list"
+        headers = self.__getAuthorizationHeader()
+        page = 0
+        count = 1
+
+        output = []
+        while page * self.PAGE_SIZE < count:
+            logger.info(f"Page {page}.")
+            data['page'] = page
+            r = requests.post(f"{self._host}/{endpoint}",
+                              data=data, headers=headers)
+
+            if r.status_code != 200:
+                logger.error(
+                    f"Getting keyword list from ASO World with data {data} ended with status code {r.status_code}. Message: {r.text}")
+                return output
+
+            response_data = r.json()
+            if "P" not in response_data:
+                logger.error(
+                    f"Getting keyword list from ASO World with data {data} ended with status code {r.status_code} but haven't got 'P' in data. \
+                        Message: {r.text}")
+                return output
+
+            count = response_data['P']['count']
+            output += response_data['P']['list']
+            page += 1
+
+        logger.info(f"Got {len(output)} keywords.")
+        return output
+
+    @__apiMethod
+    def add_keyword(self, data: dict[str, Any]) -> bool:
         """ ASO World API method to add keyword to app
 
         Args:
@@ -115,6 +150,11 @@ class ASOWorldAPIService:
         Returns:
             bool: True if succed
         """
+        assert "region" in data, "Incorrect data: region must be set"
+        assert "appId" in data, "Incorrect data: appId must be set"
+        assert "platform" in data, "Incorrect data: platform must be set"
+        assert "keyword" in data, "Incorrect data: keyword must be set"
+
         endpoint = "Keyword/add"
         headers = self.__getAuthorizationHeader()
         r = requests.post(f"{self._host}/{endpoint}",
@@ -128,7 +168,7 @@ class ASOWorldAPIService:
         return True
 
     @__apiMethod
-    def __order_list(self, data: dict[str, Any]) -> list[dict[str, Any]]:
+    def order_list(self, data: dict[str, Any]) -> list[dict[str, Any]]:
         """ ASO World API method to get orders.
 
         Args:
@@ -138,6 +178,8 @@ class ASOWorldAPIService:
         Returns:
             list[dict[str, Any]]: returns list of orders' data
         """
+        assert "pageSize" in data, "Incorrect data: pageSize must be set"
+
         endpoint = "Order/list"
         headers = self.__getAuthorizationHeader()
 
@@ -148,6 +190,7 @@ class ASOWorldAPIService:
         while page * self.PAGE_SIZE < data_count:
             page += 1
 
+            logger.info(f"Page {page}.")
             data['page'] = page
 
             r = requests.post(f"{self._host}/{endpoint}",
