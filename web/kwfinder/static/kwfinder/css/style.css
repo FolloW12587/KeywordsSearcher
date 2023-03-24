@@ -167,6 +167,10 @@ a {
     text-decoration: none;
 }
 
+a:visited {
+    color: inherit;
+}
+
 a:hover,
 a:focus,
 a:active {
@@ -677,6 +681,7 @@ code {
     background-color: #3EACBA;
     display: flex;
     align-items: center;
+    color: #fff;
 }
 
 .header--title {

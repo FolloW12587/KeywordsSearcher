@@ -37,5 +37,8 @@ urlpatterns = [
     path('console_data_add/<int:app_id>/save/',
          views.consoleDataAddSave,
          name='console_data_add_save'),
+    path('apps/add/',
+         views.add_app,
+         name='add_app'),
 ]
 urlpatterns += router.urls

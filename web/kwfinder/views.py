@@ -1,8 +1,9 @@
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
-from django_filters.rest_framework import DjangoFilterBackend
+from django.forms import modelform_factory
 from django.views.decorators.csrf import csrf_exempt
+from django_filters.rest_framework import DjangoFilterBackend
 import json
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
@@ -149,7 +150,7 @@ def dailyAnalytics(request):
 @login_required
 def appsAnalytics(request):
     """ View for showing apps analytics page """
-    apps = models.App.objects.all()
+    apps = models.App.objects.all().order_by("-is_active", "num")
     return render(request, 'kwfinder/apps_stats.html', {'apps': apps})
 
 
@@ -219,3 +220,19 @@ def consoleDataAddSave(request, app_id: int):
         return JsonResponse({"error": "Data is not valid"}, status=400)
 
     return JsonResponse({"success": True})
+
+
+@login_required
+def add_app(request):
+    Form = modelform_factory(models.App, exclude=["keywords", "is_active"])
+    if request.method == "POST":
+        
+        form = Form(request.POST, request.FILES)
+
+        if form.is_valid():
+            app = form.save()
+            return HttpResponseRedirect('/thanks/')
+    else:
+        form = Form()
+
+    return render(request, "kwfinder/app_add.html", {"form": form})
