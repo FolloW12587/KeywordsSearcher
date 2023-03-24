@@ -445,4 +445,4 @@ def __create_finished_order_keyword_data(order: models.ASOWorldOrder,
 
 
 def __datetime_from_timestamp(ts: int) -> datetime | None:
-    return None if ts == -1 else datetime.fromtimestamp(ts / 1000.0, tz=timezone.utc)
+    return None if not ts or ts == -1 else datetime.fromtimestamp(ts / 1000.0, tz=timezone.utc)
