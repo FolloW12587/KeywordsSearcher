@@ -8,13 +8,10 @@
     const app_id = {{ app.id }};
 </script>
 {% endblock %}
-{% block header_name %} App analytics {% endblock %}
+{% block header_name %} Аналитика приложения {% endblock %}
 
 {% block content %}
-<div class="header_info">
-    <div class="title" style="font-size: larger;font-weight: bold;"> [{{ app.num }}] {{ app.name }}</div>
-    <a href="/console_data_add/{{ app.id }}/" target="_blank" class="header_info_link">Добавить данные из консоли</a>
-</div>
+{% include "kwfinder/app/includes/header_info.html" %}
 <div class="settings">
     <div style="display: flex;">
         <div class="date_range--picker"></div>

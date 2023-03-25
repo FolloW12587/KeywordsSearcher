@@ -166,7 +166,7 @@ class ASOWorldOrderAdmin(admin.ModelAdmin):
 class ASOWorldOrderKeywordDataAdmin(admin.ModelAdmin):
     list_display = ("order", "keyword", "installs", "date")
     list_select_related = ('order', "keyword")
-    search_fields = ('keyword__name',)
+    search_fields = ('keyword__name', 'order__asoworld_id')
 
     def has_add_permission(self, request, obj=None) -> bool:
         return False

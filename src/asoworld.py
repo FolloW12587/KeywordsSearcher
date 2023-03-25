@@ -11,6 +11,26 @@ from web.kwfinder.controllers.asoworldAPI import ASOWorldAPIController
 logger = logging.getLogger(__name__)
 
 
+def add_app_to_asoworld(app: models.App) -> bool:
+    """ Adds app to ASO World
+
+    Args:
+        app (models.App): app to add
+
+    Returns:
+        Bool: is added successfully or not
+    """
+    controller = ASOWorldAPIController()
+    if not controller.add_app(app=app):
+        logger.warning(
+            f"App with package id {app.package_id} is not added to ASO World console!")
+        return False
+
+    logger.info(
+        f"App with package id {app.package_id} is added to ASO World successfully!")
+    return True
+
+
 def upload_regions():
     """ Uploads regions from `resources/regions.csv` to ASOWorldRegion table """
     path = "resources/regions.csv"
@@ -194,14 +214,14 @@ def __update_order_data(order: models.ASOWorldOrder, data: dict[str, Any]):
         __update_order_keywords_data(
             order=order,
             keyword_name=word,
-            progress=progress,
+            progress=progress[word],
             days=data['days'],
             region=region)
 
 
 def __update_order_keywords_data(order: models.ASOWorldOrder,
                                  keyword_name: str,
-                                 progress: dict[str, dict[str, int]],
+                                 progress: dict[str, int],
                                  days: list[list[dict]],
                                  region: str):
     """ Updates order's keywords data
@@ -209,7 +229,7 @@ def __update_order_keywords_data(order: models.ASOWorldOrder,
     Args:
         order (models.ASOWorldOrder): order to update
         keyword_name (str): keyword
-        progress (dict[str, dict[str, int]]): current orders progress
+        progress (dict[str, int]): progress of current word
         days (list[list[dict]]): daily data
         region (str): region code
     """
@@ -220,7 +240,7 @@ def __update_order_keywords_data(order: models.ASOWorldOrder,
 
     if not keyword:
         logger.debug(
-            f"No keyword {keyword}, connected for app {order.app.name}!")
+            f"No keyword {keyword_name}, connected for app {order.app.name}!")
         return
 
     date_to_update = datetime.now(tz=timezone.utc).date() - timedelta(days=1)
@@ -240,6 +260,13 @@ def __update_order_keywords_data(order: models.ASOWorldOrder,
         )
         return
 
+    old_data_aggregated = old_data.aggregate(Sum("installs"))
+    progress_count = progress['finish'] - \
+        old_data_aggregated['installs__sum']
+
+    if progress_count <= 0:
+        return
+
     data = models.ASOWorldOrderKeywordData.objects.filter(
         date=date_to_update,
         order=order,
@@ -253,9 +280,7 @@ def __update_order_keywords_data(order: models.ASOWorldOrder,
             keyword=keyword
         )
 
-    old_data_aggregated = old_data.aggregate(Sum("installs"))
-
-    data.installs += old_data_aggregated['installs__sum']
+    data.installs += progress_count
     data.save()
 
 
@@ -269,9 +294,14 @@ def __create_order(data: dict[str, Any]) -> models.ASOWorldOrder | None:
         models.ASOWorldOrder: order instance
     """
     if data['platform'] != 1 or data['state'] in \
-            [models.ASOWorldOrder.DRAFT, models.ASOWorldOrder.INVALID, models.ASOWorldOrder.PACKAGE]:
+            [models.ASOWorldOrder.DRAFT, models.ASOWorldOrder.INVALID]:
         logger.debug(
-            f"Skipping. Platform {data['platform']}, state {data['state']}.")
+            f"Skipping {data['_id']}. Platform {data['platform']}, state {data['state']}.")
+        return
+    
+    if data['submitType'] == models.ASOWorldOrder.PACKAGE:
+        logger.debug(
+            f"Skipping {data['_id']}. Submit type is Package.")
         return
 
     logger.info(f"Creating order instance with id {data['_id']}.")
@@ -310,7 +340,7 @@ def __create_order(data: dict[str, Any]) -> models.ASOWorldOrder | None:
             order=order,
             keyword_name=word,
             days=data['days'],
-            progress=progress,
+            progress=progress[word],
             region=region)
     return order
 
@@ -318,7 +348,7 @@ def __create_order(data: dict[str, Any]) -> models.ASOWorldOrder | None:
 def __create_order_keyword_data(order: models.ASOWorldOrder,
                                 keyword_name: str,
                                 days: list[list[dict]],
-                                progress: dict[str, dict[str, int]],
+                                progress: dict[str, int],
                                 region: str):
     """ Creates order keyword daily data
 
@@ -326,7 +356,7 @@ def __create_order_keyword_data(order: models.ASOWorldOrder,
         order (models.ASOWorldOrder): order 
         keyword_name (str): keyword
         days (list[list[dict]]): daily data
-        progress (dict[str, dict[str, int]]): progress for each keyword
+        progress (dict[str, int]): progress for current keyword
         region (str): region code
     """
     logger.info(
@@ -374,7 +404,7 @@ def __create_order_keyword_data(order: models.ASOWorldOrder,
         keyword_data = list(
             filter(lambda x: x['word'] == keyword_name, daily_data))
         if len(keyword_data) == 0:
-            return
+            continue
 
         keyword_data = keyword_data[0]
 
@@ -382,7 +412,7 @@ def __create_order_keyword_data(order: models.ASOWorldOrder,
             kw_progress[keyword.name] = 0
 
         installs = keyword_data['count']
-        total_installs = progress[keyword.name]['finish']
+        total_installs = progress['finish']
 
         if installs + kw_progress[keyword.name] > total_installs:
             installs = total_installs - kw_progress[keyword.name]
@@ -432,7 +462,7 @@ def __create_finished_order_keyword_data(order: models.ASOWorldOrder,
             filter(lambda x: x['word'] == keyword_name, daily_data))
 
         if len(keyword_data) == 0:
-            return
+            continue
         keyword_data = keyword_data[0]
 
         data = models.ASOWorldOrderKeywordData(

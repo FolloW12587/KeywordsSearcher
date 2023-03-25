@@ -15,12 +15,13 @@
     }
 </script>
 {% endblock %}
-{% block header_name %} Console data Add {% endblock %}
+{% block header_name %} Данные из консоли {% endblock %}
 
 {% block content %}
-<div class="header_info">
+<!-- <div class="header_info">
     <div class="title" style="font-size: larger;font-weight: bold;"> [{{ app.num }}] {{ app.name }}</div>
-</div>
+</div> -->
+{% include "kwfinder/app/includes/header_info.html" %}
 <div class="settings">
     <div style="display: flex;">
         <div class="date_range--picker"></div>

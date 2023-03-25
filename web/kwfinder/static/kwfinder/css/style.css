@@ -167,10 +167,6 @@ a {
     text-decoration: none;
 }
 
-a:visited {
-    color: inherit;
-}
-
 a:hover,
 a:focus,
 a:active {
@@ -1459,8 +1455,9 @@ button.keyword_picker_modal {
     display: flex;
 }
 
-.header_info_link {
-    margin-left: auto;
+.header_info_link, .header_info_link:visited {
+    margin-top: 10px;
+    display: block;
     color: blue;
 }
 
@@ -1515,6 +1512,17 @@ button.keyword_picker_modal {
     padding: 0 18px;
     border-radius: 5px;
     margin-left: 5px;
+    background: #79aec8;
+    color: #ffff;
+    cursor: pointer;
+}
+
+.load_data__button:disabled, .save_data__button:disabled {
+    opacity: 0.3;
+}
+
+.save_data__button{
+    background: #417690;
 }
 
 .load_state {
@@ -1531,4 +1539,34 @@ button.keyword_picker_modal {
     height: 30px;
     margin: 5px;
     cursor: pointer;
+}
+
+.app_info_field {
+    display: flex;
+    margin-top: 10px;
+}
+
+.app_info_field--title {
+    width: 160px;
+}
+
+.app_info {
+    margin-left: 10px;
+}
+
+.app_actions {
+    margin-left: auto;
+}
+
+.app_info_button {
+    padding: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    background: #79aec8;
+    color: #ffff;
+}
+
+.submit_error {
+    display: inline;
+    color: #ba2121;
 }

@@ -1,11 +1,11 @@
 {% extends "kwfinder/base.html" %}
 {% load static %}
 {% block title %}Apps stats{% endblock %}
-{% block header_name %} Apps analytics {% endblock %}
+{% block header_name %} Приложения {% endblock %}
 
 {% block content %}
 <div class="header_info">
-    <img src="/static/kwfinder/img/add-plus-symbol.png" alt="add-plus-symbol" class="add-symbol" style="margin-left: auto;">
+    <a href="/apps/add/" style="display: block; margin-left: auto;"><img src="/static/kwfinder/img/add-plus-symbol.png" alt="add-plus-symbol" class="add-symbol"></a>
 </div>
 <table border="1" class="apps_table" id="table">
     <tbody>
@@ -16,7 +16,7 @@
             <th>Регион</th>
         </tr>
         {% for app in apps %}
-            <tr class="row" onclick="window.location='/apps_analytics/{{ app.id }}/';">
+            <tr class="row" onclick="window.location='/apps_info/{{ app.id }}/';">
                 <td>{{ app.num }}</td>
                 <td>
                     {% if app.icon %} 
@@ -24,7 +24,9 @@
                     {% endif %}
                     {{ app.name }}
                 </td>
-                <td>{{ app.is_active }}</td>
+                <td>
+                    <img src="/static/admin/img/icon-{% if app.is_active %}yes{% else %}no{% endif %}.svg" alt="False" width="20" height="20">
+                </td>
                 <td>{{ app.region }}</td>
             </tr>
         {% endfor %}

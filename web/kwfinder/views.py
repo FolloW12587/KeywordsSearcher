@@ -10,6 +10,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters
 
 from . import models, serializers
+from src.asoworld import add_app_to_asoworld
+from src.apps_state import check_app
 
 
 class AppView(ReadOnlyModelViewSet):
@@ -151,7 +153,7 @@ def dailyAnalytics(request):
 def appsAnalytics(request):
     """ View for showing apps analytics page """
     apps = models.App.objects.all().order_by("-is_active", "num")
-    return render(request, 'kwfinder/apps_stats.html', {'apps': apps})
+    return render(request, 'kwfinder/app/apps_stats.html', {'apps': apps})
 
 
 @login_required
@@ -160,79 +162,81 @@ def appAnalytics(request, app_id: int):
         app = models.App.objects.get(pk=app_id)
     except models.App.DoesNotExist:
         raise Http404("App does not exist")
-    keywords = app.keywords.all()
-    return render(request, 'kwfinder/app_stats.html', {'app': app, "keywords": keywords})
+    keywords = app.keywords.all().order_by("name")
+    return render(request, 'kwfinder/app/app_stats.html', {'app': app, "keywords": keywords})
 
 
 @login_required
 def consoleDataAdd(request, app_id: int):
+    if request.method == "POST":
+        try:
+            app = models.App.objects.get(pk=app_id)
+        except models.App.DoesNotExist:
+            return JsonResponse({"error": "App does not exist"}, status=404)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Data is not a valid json"}, status=400)
+
+        try:
+            data = data['data']
+
+            for d in data:
+                try:
+                    keyword = models.Keyword.objects.get(id=d['keyword__id'])
+                except models.Keyword.DoesNotExist:
+                    continue
+
+                console_data = models.ConsoleDailyData.objects.filter(
+                    app=app,
+                    keyword=keyword,
+                    date=d['date']
+                ).first()
+
+                if not console_data:
+                    console_data = models.ConsoleDailyData(
+                        app=app,
+                        keyword=keyword,
+                        date=d['date']
+                    )
+
+                console_data.views = d['views']
+                console_data.installs = d['installs']
+                console_data.save()
+
+        except (ValueError, KeyError):
+            return JsonResponse({"error": "Data is not valid"}, status=400)
+
+        return JsonResponse({"success": True})
+    
     try:
         app = models.App.objects.get(pk=app_id)
     except models.App.DoesNotExist:
         raise Http404("App does not exist")
     keywords = app.keywords.all()
-    return render(request, 'kwfinder/console_data_add.html', {'app': app, "keywords": keywords})
-
-
-# @csrf_exempt
-@login_required
-def consoleDataAddSave(request, app_id: int):
-    if request.method != 'POST':
-        return JsonResponse({"error": "Only POST method is allowed!"}, status=404)
-
-    try:
-        app = models.App.objects.get(pk=app_id)
-    except models.App.DoesNotExist:
-        return JsonResponse({"error": "App does not exist"}, status=404)
-
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Data is not a valid json"}, status=400)
-
-    try:
-        data = data['data']
-
-        for d in data:
-            try:
-                keyword = models.Keyword.objects.get(id=d['keyword__id'])
-            except models.Keyword.DoesNotExist:
-                continue
-
-            console_data = models.ConsoleDailyData.objects.filter(
-                app=app,
-                keyword=keyword,
-                date=d['date']
-            ).first()
-
-            if not console_data:
-                console_data = models.ConsoleDailyData(
-                    app=app,
-                    keyword=keyword,
-                    date=d['date']
-                )
-
-            console_data.views = d['views']
-            console_data.installs = d['installs']
-            console_data.save()
-
-    except (ValueError, KeyError):
-        return JsonResponse({"error": "Data is not valid"}, status=400)
-
-    return JsonResponse({"success": True})
+    return render(request, 'kwfinder/app/console_data_add.html', {'app': app, "keywords": keywords})
 
 
 @login_required
 def add_app(request):
     Form = modelform_factory(models.App, exclude=["keywords", "is_active"])
     if request.method == "POST":
-        
+
         form = Form(request.POST, request.FILES)
 
         if form.is_valid():
             app = form.save()
-            return HttpResponseRedirect('/thanks/')
+            app: models.App
+            if not add_app_to_asoworld(app):
+                app.delete()
+                return render(request, "kwfinder/app/app_add.html",
+                              {"form": form,
+                               "error": "Ошибка при добавлении приложения в ASO World. \
+                                Пожалуйста, обратитесь к администратору!"})
+            check_app(app)
+            return HttpResponseRedirect(f'/apps_info/{app.id}/')
     else:
         form = Form()
 
-    return render(request, "kwfinder/app_add.html", {"form": form})
+    return render(request, "kwfinder/app/app_add.html", {"form": form})

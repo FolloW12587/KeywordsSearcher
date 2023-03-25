@@ -15,7 +15,6 @@ let params = {
 const table = document.getElementById("table");
 const load_data_button = document.getElementById("load_data__button");
 const save_data_button = document.getElementById("save_data__button");
-const title = document.getElementsByClassName("title")[0];
 const csrftoken = getCookie('csrftoken');
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -27,10 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateButtons();
 
 });
-
-function updateTitle() {
-    title.innerHTML = `[${app_num}] ${app_name} - ${params.date_selected.format("yyyy-mm-dd")}`;
-}
 
 function updateTable() {
     if (params.console.isLoading) {
@@ -150,14 +145,20 @@ function loadData() {
 }
 
 async function saveData() {
+    if (datepicker.date.from.format("yyyy-mm-dd") != params.date_selected.format("yyyy-mm-dd")){
+        alert(`Данные загружены за период ${params.date_selected.format("yyyy-mm-dd")}, а выбранная дата стоит ${datepicker.date.from.format("yyyy-mm-dd")}! 
+            Если дата загруженных данных верная, выберете ее и нажмите сохранить заново. 
+            Если нет, сначала загрузите данные за нужный период!`);
+        return;
+    }
     console.log(params.data.to_save);
     updateButtons();
     params.data.isSaving = true;
     let data = {
         "data": params.data.to_save
-    }
+    };
 
-    let url = `./save/`;
+    let url = `.`;
     let response = await fetch(url, {
         method: "POST",
         body: JSON.stringify(data),
@@ -182,7 +183,6 @@ async function loadConsoleData() {
     params.date_selected = datepicker.date.from;
     params.console.data = [];
     params.console.isLoading = true;
-    updateTitle();
     updateTable();
 
     let url = `/console_data/?date=${params.date_selected.format("yyyy-mm-dd")}&app__id=${app_id}`;
