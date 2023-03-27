@@ -17,9 +17,12 @@
             {% endblock %}
         </div>
         <div class="header_navigator">
-            <a href="/admin/" class="header_navigator--link">Админка</a>
+            {% if request.user.is_staff %}
+                <a href="/admin/" class="header_navigator--link">Админка</a>
+            {% endif %}
             <a href="/apps_info/" class="header_navigator--link">Приложения</a>
             <a href="/" class="header_navigator--link">Аналитика по ключам</a>
+            <a href="{% url "logout" %}" class="header_navigator--link">Выйти</a>
         </div>
     </div>
     <div class="main container">

@@ -5,10 +5,10 @@ from . import views
 urlpatterns = [
     path('',
          views.appsAnalytics,
-         name='app_info'),
+         name='apps_info'),
     path('<int:app_id>/',
          views.appAnalytics,
-         name='app_info'),
+         name='apps_info'),
     path('<int:app_id>/console_data/',
          views.consoleDataAdd,
          name='console_data_add'),
@@ -20,5 +20,5 @@ urlpatterns = [
          name='app_keywords_add'),
     path('add/',
          views.add_app,
-         name='app_info_add'),
+         name='apps_info_add'),
 ]

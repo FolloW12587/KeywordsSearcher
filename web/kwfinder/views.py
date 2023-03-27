@@ -101,7 +101,7 @@ class AppPositionScriptRunDataView(ReadOnlyModelViewSet):
 
 class KeitaroDailyAppDataView(ReadOnlyModelViewSet):
     queryset = models.KeitaroDailyAppData.objects.all()
-    serializer_class = serializers.KeitaroDailyAppDataSerializer
+    # serializer_class = serializers.KeitaroDailyAppDataSerializer
     permission_classes = [IsAuthenticated, ]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, ]
     filterset_fields = {
@@ -109,6 +109,12 @@ class KeitaroDailyAppDataView(ReadOnlyModelViewSet):
         'date': ['exact', 'gte', 'lte']
     }
     ordering_fields = ['date', ]
+
+    def get_serializer_class(self):
+        if self.request.user.is_staff:
+            return serializers.KeitaroDailyAppDataSerializer
+        
+        return serializers.KeitaroDailyAppDataSerializerNonStaff
 
 
 class ConsoleDailyDataView(ReadOnlyModelViewSet):

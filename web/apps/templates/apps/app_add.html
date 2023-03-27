@@ -18,7 +18,6 @@
                     {% for field in form %}
                         <div class="form-row{% if field.field.name %} field-{{ field.field.name }}{% endif %}">
                             <div class="fieldBox{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% if not field.is_readonly and field.errors %} errors{% endif %}{% if field.field.is_hidden %} hidden{% endif %}">
-                                {% if not line.fields|length_is:'1' and not field.is_readonly %}{{ field.errors }}{% endif %}
                                 {% if field.is_checkbox %}
                                     {{ field.field }}{{ field.label_tag }}
                                 {% else %}

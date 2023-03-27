@@ -22,6 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path(r'', include('web.kwfinder.urls')),
     path(r'apps_info/', include('web.apps.urls')),
+    path(r'accounts/', include('web.accounts.urls')),
 ] 
 
 if settings.DEBUG:

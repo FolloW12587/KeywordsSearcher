@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+import logs
+from django.urls import reverse_lazy
 from dotenv import load_dotenv
 import os
 from pathlib import Path
@@ -38,7 +40,6 @@ else:
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(';')
 
-import logs
 
 LOGGING = logs.LOG_CONFIG
 
@@ -54,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'django_filters',
+    'web.accounts',
     'web.kwfinder',
     'web.apps',
     'django_cleanup.apps.CleanupConfig',
@@ -164,3 +166,9 @@ TIME_TO_SLEEP = float(os.getenv('TIME_TO_SLEEP', '1'))
 NUMBER_OF_THREADS = int(os.getenv('NUMBER_OF_THREADS', '1'))
 IS_HEADLESS_MODE = bool(int(os.getenv('IS_HEADLESS_MODE', '1')))
 TIMEOUT_TIME = int(os.getenv('TIMEOUT_TIME', '15'))
+
+# LOGIN
+
+LOGIN_REDIRECT_URL = reverse_lazy('apps_info')
+LOGIN_URL = reverse_lazy('login')
+LOGOUT_URL = reverse_lazy('logout')

@@ -1,4 +1,4 @@
-import { datepicker } from './datepicker.js';
+import { datepicker } from '/static/kwfinder/js/datepicker.js';
 
 let params = {
     console: {

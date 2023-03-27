@@ -1,0 +1,51 @@
+{% extends "accounts/base.html" %}
+{% block title %}Log-in{% endblock %}
+{% block loads %}
+    {% load static %}
+    <link href="{% static "admin/css/login.css" %}" rel="stylesheet">
+    <link href="{% static "admin/css/responsive.css" %}" rel="stylesheet">
+    <link href="{% static "admin/css/dark_mode.css" %}" rel="stylesheet">
+    
+
+{% endblock %}
+{% block content %}
+<body class="login" >
+    <div id="container">
+
+        <div id="header">
+            <div id="branding">
+                <h1 id="site-name"><a href="/">Login</a></h1>
+            </div>
+        </div>
+        <div class="content">
+            <div id="content" class="colM">
+                <div id="content-main">
+                    <form action="{% url 'login' %}" method="post" id="login-form">
+                        {% for field in form %}
+                            <div class="form-row">
+                                {{ field.label_tag }}
+                                {{ field }}
+                            </div>
+                        {% endfor %}
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ next }}"/>
+                        <div class="submit-row">
+                            <input type="submit" value="Log in">
+                        </div>
+                    </form>
+                </div>
+                <br class="clear">
+            </div>
+            <div id="footer"></div>
+        </div>
+        <!-- <div class="container">
+            <div class="login-form">
+                <form action="{% url 'login' %}" method="post">
+                    
+                    <p class='submit-row'><input type="submit" value="Log-in"></p>
+                </form>
+            </div>
+        </div> -->
+    </div>
+</body>
+{% endblock %}

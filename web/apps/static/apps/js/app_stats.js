@@ -1,4 +1,4 @@
-import { datepicker } from './datepicker.js';
+import { datepicker } from '/static/kwfinder/js/datepicker.js';
 
 let params = {
     keitaro: {
@@ -101,11 +101,17 @@ function updateTable() {
 
         let keitaro_data = params.keitaro.data.filter(data => data.date == day);
         if (keitaro_data.length == 0) {
-            s += `<td>-</td><td>-</td><td>-</td><td>-</td>`;
+            s += `<td>-</td><td>-</td><td>-</td>`;
+            if (is_staff) {
+                s += "<td>-</td>"
+            }
         } else {
             keitaro_data = keitaro_data[0];
             s += `<td>${keitaro_data.unique_users_count}</td><td>${keitaro_data.conversions_count}</td>
-                <td>${keitaro_data.sales_count}</td><td>${keitaro_data.revenue}</td>`;
+                <td>${keitaro_data.sales_count}</td>`;
+            if (is_staff) {
+                s += `<td>${keitaro_data.revenue}</td>`;
+            }
         }
 
         let our_data = params.our.data.filter(data => data.date == day);

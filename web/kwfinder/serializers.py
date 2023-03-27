@@ -49,6 +49,12 @@ class KeitaroDailyAppDataSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class KeitaroDailyAppDataSerializerNonStaff(serializers.ModelSerializer):
+    class Meta:
+        model = models.KeitaroDailyAppData
+        exclude = ["revenue",]
+
+
 class ConsoleDailyDataSerializer(serializers.ModelSerializer):
     conversion = serializers.ReadOnlyField()
     

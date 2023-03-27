@@ -76,7 +76,7 @@ def consoleDataAdd(request, app_id: int):
 
 @login_required
 def add_app(request):
-    Form = modelform_factory(models.App, exclude=["keywords", "is_active"])
+    Form = modelform_factory(models.App, exclude=["keywords", "is_active", "icon"])
     if request.method == "POST":
 
         form = Form(request.POST, request.FILES)

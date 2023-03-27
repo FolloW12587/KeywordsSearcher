@@ -3,9 +3,10 @@
 {% block title %}Apps stats{% endblock %}
 {% block loads %}
 <script type="module" src="{% static "kwfinder/js/datepicker.js" %}"></script>
-<script type="module" src="{% static "kwfinder/js/app_stats.js" %}"></script>
+<script type="module" src="{% static "apps/js/app_stats.js" %}"></script>
 <script>
     const app_id = {{ app.id }};
+    const is_staff = {% if request.user.is_staff %} true {% else %} false {% endif %};
 </script>
 {% endblock %}
 {% block header_name %} Аналитика приложения {% endblock %}
@@ -47,7 +48,7 @@
 <table class="apps_table apps_info_table" id="table">
     <tbody>
         <tr class="header_row">
-            <th colspan="5">Данные с кейтаро</th>
+            <th colspan="{% if request.user.is_staff %} 5 {% else %} 4 {% endif %}">Данные с кейтаро</th>
             <th>Cами</th>
             <th colspan="3">Консоль</th>
             <th>ASO World</th>
@@ -56,8 +57,8 @@
             <th>Дата</th>
             <th>Уники</th>
             <th>Конверсии</th>
-            <th>Продажи</th>
-            <th>Доход</th>
+            <th>Продажи</th> 
+            {% if request.user.is_staff %} <th>Доход</th> {% endif %}
             <th>Место</th>
             <th>Посетители</th>
             <th>Установки</th>
