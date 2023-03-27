@@ -841,14 +841,11 @@ code {
     min-width: 250px;
 }
 
-.dropdown--element__filtered {
-    color: #fff;
-    background-color: #3EACBA;
-}
 
 .dropdown--element:hover {
     background: #f8f8f8;
     border: solid 1px #ebebed;
+    color: #000;
 }
 
 .dropdown--element__disabled {
@@ -856,9 +853,14 @@ code {
     cursor: default;
 }
 
-.dropdown--element:hover {
+.dropdown--element__filtered {
+    display: none;
+}
+
+.dropdown--element__disabled:hover {
     border: solid 1px #fff;
     background: #fff;
+    color: #b7b7b7;
 }
 
 
@@ -1455,21 +1457,22 @@ button.keyword_picker_modal {
     display: flex;
 }
 
-.header_info_link, .header_info_link:visited {
+.header_info_link,
+.header_info_link:visited {
     margin-top: 10px;
     display: block;
     color: blue;
 }
 
-.apps_table,
+.apps_info_table,
 .console_data_add_table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
     width: 100%;
 }
 
-.apps_table td,
-.apps_table th,
+.apps_info_table td,
+.apps_info_table th,
 .console_data_add_table td,
 .console_data_add_table th {
     border: 1px solid #dddddd;
@@ -1477,23 +1480,21 @@ button.keyword_picker_modal {
     padding: 8px;
 }
 
-.apps_table th,
+.apps_info_table th,
 .console_data_add_table th {
     font-weight: bold;
 }
 
-.apps_table tr.row:nth-child(even),
+.apps_info_table tr.row:nth-child(even),
 .console_data_add_table tr.row:nth-child(even) {
     background-color: #dddddd;
 }
 
-.apps_table tr.row,
-.console_data_add_table tr.row {
+.apps_table tr.row {
     cursor: pointer;
 }
 
-.apps_table tr.row:first,
-.console_data_add_table tr.row:first {
+.apps_table tr.row:first {
     cursor: default;
 }
 
@@ -1507,7 +1508,8 @@ button.keyword_picker_modal {
     margin-left: auto;
 }
 
-.load_data__button, .save_data__button {
+.load_data__button,
+.save_data__button {
     height: 44px;
     padding: 0 18px;
     border-radius: 5px;
@@ -1517,11 +1519,12 @@ button.keyword_picker_modal {
     cursor: pointer;
 }
 
-.load_data__button:disabled, .save_data__button:disabled {
+.load_data__button:disabled,
+.save_data__button:disabled {
     opacity: 0.3;
 }
 
-.save_data__button{
+.save_data__button {
     background: #417690;
 }
 

@@ -1,0 +1,55 @@
+{% extends "kwfinder/base.html" %}
+{% load static %}
+{% block title %}Add app{% endblock %}
+{% block loads %}
+<link href="{% static "admin/css/base.css" %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static "admin/css/forms.css" %}">
+{% endblock %}
+{% block header_name %} Добавить ключевое {% endblock %}
+
+{% block content %}
+{% include "apps/includes/header_info.html" %}
+
+<div class="container">
+    <div class="form">
+        <form action="" enctype="multipart/form-data" method="post">
+            {% csrf_token %}
+            <div>
+                <fieldset class="module aligned">
+                    {% for field in form %}
+                        <div class="form-row{% if field.field.name %} field-{{ field.field.name }}{% endif %}">
+                            <div class="fieldBox{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% if not field.is_readonly and field.errors %} errors{% endif %}{% if field.field.is_hidden %} hidden{% endif %}">
+                                {% if not line.fields|length_is:'1' and not field.is_readonly %}{{ field.errors }}{% endif %}
+                                {% if field.is_checkbox %}
+                                    {{ field.field }}{{ field.label_tag }}
+                                {% else %}
+                                    {{ field.label_tag }}
+                                    {% if field.is_readonly %}
+                                        <div class="readonly">{{ field.contents }}</div>
+                                    {% else %}
+                                        {{ field }}
+                                    {% endif %}
+                                {% endif %}
+                                {% if field.field.help_text %}
+                                    <div class="help"{% if field.field.id_for_label %} id="{{ field.field.id_for_label }}_helptext"{% endif %}>
+                                    {{ field.field.help_text|safe }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </fieldset>
+            </div>
+            <!-- <input type="hidden" name="action" value="send_pushes_action" />
+            <p class='submit-row'><input type="submit" name="apply" value="Отправить"></p> -->
+            <div class="submit-row">
+                {% if error %}
+                    <div class="submit_error">{{ error }}</div>
+                {% endif %}
+                <input type="submit" class="" value="Добавить">
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

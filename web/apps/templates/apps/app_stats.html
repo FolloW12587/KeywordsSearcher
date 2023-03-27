@@ -11,7 +11,7 @@
 {% block header_name %} Аналитика приложения {% endblock %}
 
 {% block content %}
-{% include "kwfinder/app/includes/header_info.html" %}
+{% include "apps/includes/header_info.html" %}
 <div class="settings">
     <div style="display: flex;">
         <div class="date_range--picker"></div>
@@ -44,7 +44,7 @@
         </div>
     </div>
 </div>
-<table class="apps_table" id="table">
+<table class="apps_table apps_info_table" id="table">
     <tbody>
         <tr class="header_row">
             <th colspan="5">Данные с кейтаро</th>

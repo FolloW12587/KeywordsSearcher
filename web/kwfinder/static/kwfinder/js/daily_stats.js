@@ -187,10 +187,10 @@ function inputAppSearch() {
 
     for (let i = 0; i < appObjs.length; i++){
         let obj = appObjs[i]
-        if (search_app != "" && obj.innerHTML.toLowerCase().includes(search_app.toLowerCase())){
-            obj.classList.add("dropdown--element__filtered");
-        } else {
+        if (search_app == "" || obj.innerHTML.toLowerCase().includes(search_app.toLowerCase())){
             obj.classList.remove("dropdown--element__filtered");
+        } else {
+            obj.classList.add("dropdown--element__filtered");
         }
     }
 }

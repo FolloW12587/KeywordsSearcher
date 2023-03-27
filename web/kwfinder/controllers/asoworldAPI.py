@@ -25,11 +25,11 @@ class ASOWorldAPIController:
         return self._service.add_app(data)
 
     def add_keyword(self, app: models.App, keyword: models.Keyword) -> bool:
-        """ Adds `keyword` to ASO World app, that is connected to `models.App`.
+        """ Adds `models.Keyword` to ASO World app, that is connected to `models.App`.
 
         Args:
             app (models.App): App to add keyword to
-            keyword (str): keyword to add
+            keyword (models.Keyword): keyword to add
 
         Returns:
             bool: True if success

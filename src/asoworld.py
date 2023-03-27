@@ -31,6 +31,29 @@ def add_app_to_asoworld(app: models.App) -> bool:
     return True
 
 
+def add_keyword_to_app_in_asoworld(app: models.App, keyword: models.Keyword) -> bool:
+    """ Adds keyword to app in ASO World
+
+    Args:
+        app (models.App): app, that is connected to aso world
+        keyword (models.Keyword): keyword to add
+
+    Returns:
+        Bool: is added successfully or not
+    """
+    controller = ASOWorldAPIController()
+    if not controller.add_keyword(app=app, keyword=keyword):
+        logger.warning(
+            f"Keyword with name {keyword.name} and region {keyword.region.code} is not added to app \
+                with package id {app.package_id} in ASO World console!")
+        return False
+
+    logger.info(
+        f"Keyword with name {keyword.name} and region {keyword.region.code} is added to app \
+            with package id {app.package_id} in ASO World successfully!")
+    return True
+
+
 def upload_regions():
     """ Uploads regions from `resources/regions.csv` to ASOWorldRegion table """
     path = "resources/regions.csv"
@@ -298,7 +321,7 @@ def __create_order(data: dict[str, Any]) -> models.ASOWorldOrder | None:
         logger.debug(
             f"Skipping {data['_id']}. Platform {data['platform']}, state {data['state']}.")
         return
-    
+
     if data['submitType'] == models.ASOWorldOrder.PACKAGE:
         logger.debug(
             f"Skipping {data['_id']}. Submit type is Package.")

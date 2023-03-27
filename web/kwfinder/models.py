@@ -31,6 +31,7 @@ class ASOWorldRegion(models.Model):
     class Meta:
         verbose_name = "Регион (ASO World)"
         verbose_name_plural = "Регионы (ASO World)"
+        ordering = ['code',]
 
     def __str__(self):
         return f"[{self.code}] {self.name}"

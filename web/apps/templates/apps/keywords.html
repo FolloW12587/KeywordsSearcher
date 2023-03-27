@@ -1,0 +1,25 @@
+{% extends "kwfinder/base.html" %}
+{% load static %}
+{% block title %}Keywords{% endblock %}
+{% block header_name %} Ключевые слова {% endblock %}
+
+{% block content %}
+{% include "apps/includes/header_info.html" %}
+<div class="action" style="display: flex;">
+    <a href="add/" style="display: block; margin-left: auto;"><img src="/static/kwfinder/img/add-plus-symbol.png" alt="add-plus-symbol" class="add-symbol"></a>
+</div>
+<table border="1" class="keywords_table apps_info_table" id="table">
+    <tbody>
+        <tr class="header_row">
+            <th>Имя</th>
+            <th>Регион</th>
+        </tr>
+        {% for keyword in keywords %}
+            <tr class="row">
+                <td>{{ keyword.name }}</td>
+                <td>{{ keyword.region }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

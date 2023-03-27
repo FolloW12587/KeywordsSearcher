@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'web.kwfinder',
+    'web.apps',
     'django_cleanup.apps.CleanupConfig',
 ]
 

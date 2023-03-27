@@ -21,6 +21,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path(r'', include('web.kwfinder.urls')),
+    path(r'apps_info/', include('web.apps.urls')),
 ] 
 
 if settings.DEBUG:
