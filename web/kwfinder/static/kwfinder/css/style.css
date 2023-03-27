@@ -1573,3 +1573,7 @@ button.keyword_picker_modal {
     display: inline;
     color: #ba2121;
 }
+
+.actions {
+    display: flex;
+}
