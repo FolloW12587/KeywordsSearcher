@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters
 
 from . import models, serializers
+from web.apps.permissions import get_allowed_apps
 
 
 class AppView(ReadOnlyModelViewSet):
@@ -20,6 +21,17 @@ class AppView(ReadOnlyModelViewSet):
     filterset_fields = ['platform__id', ]
     search_fields = ['name', ]
     ordering_fields = ['name', ]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.user.has_perm('kwfinder.can_see_all'):
+            return queryset
+
+        if not hasattr(self.request.user, 'profile'):
+            return queryset.none()
+
+        return queryset.filter(
+            app__in=self.request.user.profile.apps_allowed.all())
 
 
 class AppPlatformView(ReadOnlyModelViewSet):
@@ -43,6 +55,15 @@ class KeywordView(ReadOnlyModelViewSet):
         has_data = self.request.GET.get('has_data')
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
+        queryset = super().get_queryset()
+
+        if not self.request.user.has_perm('kwfinder.can_see_all'):
+            if not hasattr(self.request.user, 'profile'):
+                queryset = queryset.none()
+            else:
+                queryset = queryset.filter(
+                    app__in=self.request.user.profile.apps_allowed.all())
+
         if has_data and (has_data == '1') and start_date and end_date:
             filter_ids = models.DailyAggregatedPositionData.objects.filter(
                 date__lte=end_date, date__gte=start_date).exclude(position=0)
@@ -55,10 +76,10 @@ class KeywordView(ReadOnlyModelViewSet):
             filter_ids = filter_ids.values_list(
                 'keyword', flat=True).distinct()
 
-            self.queryset = models.Keyword.objects.filter(
+            queryset = queryset.filter(
                 id__in=list(filter_ids))
 
-        return super().get_queryset()
+        return queryset
 
 
 class DailyAggregatedDataView(ReadOnlyModelViewSet):
@@ -77,6 +98,17 @@ class DailyAggregatedDataView(ReadOnlyModelViewSet):
     }
     ordering_fields = ['date', ]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.user.has_perm('kwfinder.can_see_all'):
+            return queryset
+
+        if not hasattr(self.request.user, 'profile'):
+            return queryset.none()
+
+        return queryset.filter(
+            app__in=self.request.user.profile.apps_allowed.all())
+
 
 class AppPositionScriptRunDataView(ReadOnlyModelViewSet):
     queryset = models.AppPositionScriptRunData.objects.all()
@@ -92,6 +124,14 @@ class AppPositionScriptRunDataView(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+
+        if not self.request.user.has_perm('kwfinder.can_see_all'):
+            if not hasattr(self.request.user, 'profile'):
+                queryset = queryset.none()
+            else:
+                queryset = queryset.filter(
+                    app__in=self.request.user.profile.apps_allowed.all())
+
         date = self.request.GET.get('date')
         if date:
             queryset = queryset.filter(
@@ -116,6 +156,17 @@ class KeitaroDailyAppDataView(ReadOnlyModelViewSet):
 
         return serializers.KeitaroDailyAppDataSerializerNonStaff
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.user.has_perm('kwfinder.can_see_all'):
+            return queryset
+
+        if not hasattr(self.request.user, 'profile'):
+            return queryset.none()
+
+        return queryset.filter(
+            app__in=self.request.user.profile.apps_allowed.all())
+
 
 class ConsoleDailyDataView(ReadOnlyModelViewSet):
     queryset = models.ConsoleDailyData.objects.all()
@@ -128,6 +179,17 @@ class ConsoleDailyDataView(ReadOnlyModelViewSet):
         'date': ['exact', 'gte', 'lte']
     }
     ordering_fields = ['date', ]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.user.has_perm('kwfinder.can_see_all'):
+            return queryset
+
+        if not hasattr(self.request.user, 'profile'):
+            return queryset.none()
+
+        return queryset.filter(
+            app__in=self.request.user.profile.apps_allowed.all())
 
 
 class ASOWorldOrderKeywordDataView(ReadOnlyModelViewSet):
@@ -142,9 +204,20 @@ class ASOWorldOrderKeywordDataView(ReadOnlyModelViewSet):
     }
     ordering_fields = ['date', ]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.user.has_perm('kwfinder.can_see_all'):
+            return queryset
+
+        if not hasattr(self.request.user, 'profile'):
+            return queryset.none()
+
+        return queryset.filter(
+            order__app__in=self.request.user.profile.apps_allowed.all())
+
 
 @login_required
 def dailyAnalytics(request):
     """ View for showing daily analytics page """
-    apps = models.App.objects.all()
+    apps = get_allowed_apps(request)
     return render(request, 'kwfinder/daily_stats.html', {'apps': apps})

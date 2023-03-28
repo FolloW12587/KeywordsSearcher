@@ -37,25 +37,6 @@ class ASOWorldRegion(models.Model):
         return f"[{self.code}] {self.name}"
 
 
-# class AppType(models.Model):
-#     """ Модель, описывающая тип приложения """
-#     id = models.AutoField("id", primary_key=True)
-#     name = models.CharField("Название", max_length=255)
-#     google_store_link_attributes = models.TextField(
-#         "Аттрибуты для поиска в гугл сторе")
-#     apple_store_link_attributes = models.TextField(
-#         "Аттрибуты для поиска в эпл сторе")
-#     asoworld_region = models.ForeignKey(
-#         ASOWorldRegion, on_delete=models.CASCADE, verbose_name="Регион (ASO World)")
-
-#     class Meta:
-#         verbose_name = "Тип приложения"
-#         verbose_name_plural = "Типы приложений"
-
-#     def __str__(self):
-#         return self.name
-
-
 class App(models.Model):
     """ Модель, описывающая приложение """
     id = models.AutoField("id", primary_key=True)
@@ -84,9 +65,10 @@ class App(models.Model):
     class Meta:
         verbose_name = "Приложение"
         verbose_name_plural = "Приложения"
+        permissions = (('can_see_all', "Видит все приложения"),)
 
     def __str__(self):
-        return self.name
+        return f"[{self.num}] {self.name}"
 
 
 class Keyword(models.Model):

@@ -1,9 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.forms import modelform_factory
-from django.http import Http404, HttpResponseRedirect, JsonResponse
-from django.shortcuts import render
+from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import render, get_object_or_404
 import json
 
+from .models import Profile
+from .permissions import check_app_permissions, get_allowed_apps
 from src.asoworld import add_app_to_asoworld, add_keyword_to_app_in_asoworld
 from src.apps_state import check_app
 from web.kwfinder import models
@@ -12,26 +14,24 @@ from web.kwfinder import models
 @login_required
 def appsAnalytics(request):
     """ View for showing apps analytics page """
-    apps = models.App.objects.all().order_by("-is_active", "num")
+    apps = get_allowed_apps(request)
+
+    apps = apps.order_by("-is_active", "num")
     return render(request, 'apps/apps_stats.html', {'apps': apps})
 
 
+@check_app_permissions
 @login_required
 def appAnalytics(request, app_id: int):
-    try:
-        app = models.App.objects.get(pk=app_id)
-    except models.App.DoesNotExist:
-        raise Http404("App does not exist")
+    app = get_object_or_404(models.App, pk=app_id)
     keywords = app.keywords.all().order_by("name")
     return render(request, 'apps/app_stats.html', {'app': app, "keywords": keywords})
 
 
+@check_app_permissions
 @login_required
 def consoleDataAdd(request, app_id: int):
-    try:
-        app = models.App.objects.get(pk=app_id)
-    except models.App.DoesNotExist:
-        raise Http404("App does not exist")
+    app = get_object_or_404(models.App, pk=app_id)
 
     if request.method == "POST":
         try:
@@ -91,6 +91,14 @@ def add_app(request):
                               {"form": form,
                                "error": "Ошибка при добавлении приложения в ASO World. \
                                 Пожалуйста, обратитесь к администратору!"})
+
+            if not request.user.has_perm('kwfinder.can_see_all'):
+                if not hasattr(request.user, 'profile'):
+                    Profile.create_profile(user=request.user)
+
+                profile = request.user.profile
+                profile.apps_allowed.add(app)
+
             check_app(app)
             return HttpResponseRedirect(f'/apps_info/{app.id}/')
     else:
@@ -99,24 +107,20 @@ def add_app(request):
     return render(request, "apps/app_add.html", {"form": form})
 
 
+@check_app_permissions
 @login_required
 def app_keywords(request, app_id: int):
-    try:
-        app = models.App.objects.get(pk=app_id)
-    except models.App.DoesNotExist:
-        raise Http404("App does not exist")
-        # return JsonResponse({"error": "App does not exist"}, status=404)
+    app = get_object_or_404(models.App, pk=app_id)
+    # return JsonResponse({"error": "App does not exist"}, status=404)
 
     keywords = app.keywords.all().order_by("region", "name")
     return render(request, 'apps/keywords.html', {'app': app, "keywords": keywords})
 
 
+@check_app_permissions
 @login_required
 def add_keyword_to_app(request, app_id: int):
-    try:
-        app = models.App.objects.get(pk=app_id)
-    except models.App.DoesNotExist:
-        raise Http404("App does not exist")
+    app = get_object_or_404(models.App, pk=app_id)
 
     Form = modelform_factory(models.Keyword, fields="__all__")
     message = None
