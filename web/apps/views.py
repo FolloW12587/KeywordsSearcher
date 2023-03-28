@@ -76,7 +76,8 @@ def consoleDataAdd(request, app_id: int):
 
 @login_required
 def add_app(request):
-    Form = modelform_factory(models.App, exclude=["keywords", "is_active", "icon"])
+    Form = modelform_factory(models.App, exclude=[
+                             "keywords", "is_active", "icon"])
     if request.method == "POST":
 
         form = Form(request.POST, request.FILES)
@@ -118,9 +119,10 @@ def add_keyword_to_app(request, app_id: int):
         raise Http404("App does not exist")
 
     Form = modelform_factory(models.Keyword, fields="__all__")
+    message = None
     if request.method == "POST":
 
-        form = Form(request.POST, request.FILES)
+        form = Form(request.POST)
 
         if form.is_valid():
             keyword = models.Keyword.objects.filter(
@@ -129,9 +131,13 @@ def add_keyword_to_app(request, app_id: int):
             if not keyword:
                 keyword = form.save()
             elif app.keywords.contains(keyword):
+                message = {
+                    "text": f"Указанный ключ уже добавлен к приложению!",
+                    "success": False
+                }
                 return render(request, "apps/keyword_add.html",
                               {"form": form, "app": app,
-                               "error": "Указанный ключ уже добавлен к приложению!"})
+                               "message": message})
 
             app.keywords.add(keyword)
 
@@ -139,13 +145,26 @@ def add_keyword_to_app(request, app_id: int):
                 app.keywords.remove(keyword)
                 if keyword.app_set.count() == 0:  # type: ignore
                     keyword.delete()
+
+                message = {
+                    "text": f"Ошибка при добавлении ключа {keyword.name} региона {keyword.region} \
+                            к приложению в ASO World. Пожалуйста, обратитесь к администратору!",
+                    "success": False
+                }
+
                 return render(request, "apps/keyword_add.html",
                               {"form": form, "app": app,
-                               "error": "Ошибка при добавлении ключа к приложению в ASO World. \
-                                Пожалуйста, обратитесь к администратору!"})
+                               "message": message})
 
-            return HttpResponseRedirect(f'/apps_info/{app.id}/keywords/')
+            if "_save" in request.POST:
+                return HttpResponseRedirect(f'/apps_info/{app.id}/keywords/')
+
+            message = {
+                "text": f"Ключевое слово {keyword.name} региона {keyword.region} успешно добавлено!",
+                "success": True
+            }
+
     else:
         form = Form()
 
-    return render(request, "apps/keyword_add.html", {"form": form, "app": app})
+    return render(request, "apps/keyword_add.html", {"form": form, "app": app, "message": message})

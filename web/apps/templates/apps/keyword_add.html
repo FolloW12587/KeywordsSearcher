@@ -9,7 +9,11 @@
 
 {% block content %}
 {% include "apps/includes/header_info.html" %}
-
+{% if message %}
+    <ul class="messagelist">
+        <li class="{% if message.success %}success{% else %}error{% endif %}">{{ message.text }}</li>
+    </ul>
+{% endif %}
 <div class="container">
     <div class="form">
         <form action="" enctype="multipart/form-data" method="post">
@@ -43,10 +47,8 @@
             <!-- <input type="hidden" name="action" value="send_pushes_action" />
             <p class='submit-row'><input type="submit" name="apply" value="Отправить"></p> -->
             <div class="submit-row">
-                {% if error %}
-                    <div class="submit_error">{{ error }}</div>
-                {% endif %}
-                <input type="submit" class="" value="Добавить">
+                <input type="submit" class="default" value="Сохранить" name="_save">
+                <input type="submit" value="Сохранить и добавить новое" name="_addanother">
             </div>
         </form>
     </div>
