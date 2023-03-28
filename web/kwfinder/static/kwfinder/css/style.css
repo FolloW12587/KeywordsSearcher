@@ -1546,7 +1546,7 @@ button.keyword_picker_modal {
 
 .app_info_field {
     display: flex;
-    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .app_info_field--title {

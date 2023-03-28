@@ -1,6 +1,6 @@
 <div class="title" style="font-size: larger;font-weight: bold; margin-bottom: 10px;"> <a href="/apps_info/{{ app.id }}/">{{ app.name }}</a></div>
 <div class="header_info">
-    <div class="app_image">
+    <div class="app_image" style="margin-top: 3px;">
         {% if app.icon %} 
             <img src="{{ app.icon.url }}" width="130" height="130">
         {% endif %}
@@ -9,6 +9,10 @@
         <div class="app_info_field">
             <div class="app_info_field--title">Номер:</div>
             <div class="app_info_field--value">{{ app.num }}</div>
+        </div>
+        <div class="app_info_field">
+            <div class="app_info_field--title">Регион:</div>
+            <div class="app_info_field--value">{{ app.region }}</div>
         </div>
         <div class="app_info_field">
             <div class="app_info_field--title">ID в кейтаро:</div>

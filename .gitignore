@@ -147,3 +147,4 @@ web/static/*
 web/media/*
 
 resources/*
+.vscode/settings.json

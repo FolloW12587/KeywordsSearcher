@@ -295,7 +295,7 @@ function updateKeywordsChosenList() {
     let s = "";
     for (let i in params.keywords.chosen) {
         let keyword = params.keywords.chosen[i];
-        s += `<div class="keyword_chosen_list--element" data-id="${keyword.id}">${keyword.name}<i class="cross"></i></div>`;
+        s += `<div class="keyword_chosen_list--element" data-id="${keyword.id}">[${keyword.region}] ${keyword.name}<i class="cross"></i></div>`;
     }
     keywordListObj.innerHTML = s;
     let keywordsCrosses = keywordListObj.getElementsByClassName("cross");
