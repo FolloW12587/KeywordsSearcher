@@ -114,7 +114,7 @@ def app_keywords(request, app_id: int):
     # return JsonResponse({"error": "App does not exist"}, status=404)
 
     keywords = app.keywords.all().order_by("region", "name")
-    return render(request, 'apps/keywords.html', {'app': app, "keywords": keywords})
+    return render(request, 'apps/keywords/keywords.html', {'app': app, "keywords": keywords})
 
 
 @check_app_permissions
@@ -139,7 +139,7 @@ def add_keyword_to_app(request, app_id: int):
                     "text": f"Указанный ключ уже добавлен к приложению!",
                     "success": False
                 }
-                return render(request, "apps/keyword_add.html",
+                return render(request, "apps/keywords/keyword_add.html",
                               {"form": form, "app": app,
                                "message": message})
 
@@ -156,7 +156,7 @@ def add_keyword_to_app(request, app_id: int):
                     "success": False
                 }
 
-                return render(request, "apps/keyword_add.html",
+                return render(request, "apps/keywords/keyword_add.html",
                               {"form": form, "app": app,
                                "message": message})
 
@@ -171,4 +171,27 @@ def add_keyword_to_app(request, app_id: int):
     else:
         form = Form()
 
-    return render(request, "apps/keyword_add.html", {"form": form, "app": app, "message": message})
+    return render(request, "apps/keywords/keyword_add.html", {"form": form, "app": app, "message": message})
+
+
+@check_app_permissions
+@login_required
+def remove_keyword_from_app(request, app_id: int, keyword_id: int):
+    app = get_object_or_404(models.App, pk=app_id)
+    keyword = get_object_or_404(models.Keyword, pk=keyword_id)
+    message = {
+        "text": f"Ключевое слово {keyword.name} региона {keyword.region} успешно отвязано от приложения!",
+        "success": True
+    }
+
+    if not app.keywords.contains(keyword):
+        message = {
+            "text": f"Ключевое слово {keyword.name} региона {keyword.region} не привязано к данному приложению!",
+            "success": False
+        }
+        return render(request, "apps/keywords/keyword_remove.html",
+                      {"app": app, "keyword": keyword, "message": message})
+
+    app.keywords.remove(keyword)
+    return render(request, "apps/keywords/keyword_remove.html",
+                  {"app": app, "keyword": keyword, "message": message})

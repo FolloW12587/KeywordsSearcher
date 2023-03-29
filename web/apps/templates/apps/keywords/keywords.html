@@ -3,6 +3,10 @@
 {% block title %}Keywords{% endblock %}
 {% block header_name %} Ключевые слова {% endblock %}
 
+{% block loads %}
+    <script type="module" src="{% static "apps/js/keywords.js" %}"></script>
+{% endblock %}
+
 {% block content %}
 {% include "apps/includes/header_info.html" %}
 <div class="actions">
@@ -13,13 +17,26 @@
         <tr class="header_row">
             <th>Имя</th>
             <th>Регион</th>
+            <th style="width: 70px;"></th>
         </tr>
         {% for keyword in keywords %}
             <tr class="row">
                 <td>{{ keyword.name }}</td>
                 <td>{{ keyword.region }}</td>
+                <td style="width: 70px; word-wrap: break-word;">
+                    <button class="delete_button" data-ask-to-delete data-id="{{ keyword.id }}">Удалить</button>
+                </td>
             </tr>
         {% endfor %}
     </tbody>
 </table>
+<div class="modal" id="modal">
+    <div class="modal-header">
+        <div class="title">Подтвердите действие</div>
+        <button data-close-button class="close-button">&times;</button>
+    </div>
+    <div class="modal-body">
+    </div>
+</div>
+<div id="overlay"></div>
 {% endblock %}

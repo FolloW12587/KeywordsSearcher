@@ -1,0 +1,20 @@
+{% extends "kwfinder/base.html" %}
+{% load static %}
+{% block title %}Keywords{% endblock %}
+{% block header_name %} Удаление ключевого слова {% endblock %}
+{% block loads %}
+<link href="{% static "admin/css/base.css" %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <ul class="messagelist">
+        <li class="{% if message.success %}success{% else %}error{% endif %}">{{ message.text }}</li>
+    </ul>
+    <div class="info">
+        {% if message.success %}
+            <p>Не смотря на то, что ключевое слово удалено из базы, оно не удалено из ASO World! Пожалуйста, удалите ключевое
+                слово вручную или обратитесь к администратору.</p>
+        {% endif %}
+        <p><a href="/apps_info/{{ app.id }}/keywords/">Вернуться</a></p>
+    </div>
+{% endblock %}

@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from web.kwfinder import models
 
 
-def check_app_permissions(f: Callable[[Any, int], (HttpResponse)]):
+def check_app_permissions(f: Callable[..., HttpResponse]):
     def wrapper(request, app_id: int, *args, **kwargs):
         if request.user.has_perm('kwfinder.can_see_all') or \
             (hasattr(request.user, 'profile') and
