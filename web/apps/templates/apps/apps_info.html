@@ -3,8 +3,12 @@
 {% block title %}Apps stats{% endblock %}
 {% block header_name %} Приложения {% endblock %}
 
+{% block loads %}
+<script type="module" src="{% static "apps/js/apps_info.js" %}"></script>
+{% endblock %}
 {% block content %}
 <div class="actions">
+    <button class="app_info_button toggle_banned_button">Показать / скрыть неактивные</button>
     <a href="add/" style="display: block; margin-left: auto;"><img src="/static/kwfinder/img/add-plus-symbol.png" alt="add-plus-symbol" class="add-symbol"></a>
 </div>
 <table border="1" class="apps_table apps_info_table" id="table">
@@ -16,7 +20,7 @@
             <th>Регион</th>
         </tr>
         {% for app in apps %}
-            <tr class="row" onclick="window.location='/apps_info/{{ app.id }}/';">
+            <tr class="row {% if not app.is_active %}hidden{% endif %}" onclick="window.location='/apps_info/{{ app.id }}/';" data-attribute="{% if app.is_active %}active{% else %}banned{% endif %}">
                 <td>{{ app.num }}</td>
                 <td>
                     {% if app.icon %} 

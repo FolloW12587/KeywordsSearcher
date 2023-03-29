@@ -1576,4 +1576,13 @@ button.keyword_picker_modal {
 
 .actions {
     display: flex;
+    margin-bottom: 5px;
+}
+
+.toggle_banned_button {
+    background-color: #ba2121;
+}
+
+.toggle_banned_button.active {
+    background-color: #79aec8;
 }

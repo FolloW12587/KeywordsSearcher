@@ -17,7 +17,7 @@ def appsAnalytics(request):
     apps = get_allowed_apps(request)
 
     apps = apps.order_by("-is_active", "num")
-    return render(request, 'apps/apps_stats.html', {'apps': apps})
+    return render(request, 'apps/apps_info.html', {'apps': apps})
 
 
 @check_app_permissions
