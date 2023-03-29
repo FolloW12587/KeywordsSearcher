@@ -151,7 +151,7 @@ class KeitaroDailyAppDataView(ReadOnlyModelViewSet):
     ordering_fields = ['date', ]
 
     def get_serializer_class(self):
-        if self.request.user.is_staff:  # type: ignore
+        if self.request.user.has_perm('kwfinder.can_see_keitaro_revenue'):  # type: ignore
             return serializers.KeitaroDailyAppDataSerializer
 
         return serializers.KeitaroDailyAppDataSerializerNonStaff

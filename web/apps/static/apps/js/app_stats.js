@@ -102,14 +102,14 @@ function updateTable() {
         let keitaro_data = params.keitaro.data.filter(data => data.date == day);
         if (keitaro_data.length == 0) {
             s += `<td>-</td><td>-</td><td>-</td>`;
-            if (is_staff) {
+            if (can_see_keitaro_revenue) {
                 s += "<td>-</td>"
             }
         } else {
             keitaro_data = keitaro_data[0];
             s += `<td>${keitaro_data.unique_users_count}</td><td>${keitaro_data.conversions_count}</td>
                 <td>${keitaro_data.sales_count}</td>`;
-            if (is_staff) {
+            if (can_see_keitaro_revenue) {
                 s += `<td>${keitaro_data.revenue}</td>`;
             }
         }

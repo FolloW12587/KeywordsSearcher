@@ -166,6 +166,7 @@ class KeitaroDailyAppData(models.Model):
     class Meta:
         verbose_name = "Данные из keitaro"
         verbose_name_plural = "Данные из keitaro"
+        permissions = (('can_see_keitaro_revenue', "Видит доход в кейтаро"),)
 
     def __str__(self):
         return f"{self.app.name}_{self.date.strftime(r'%Y-%m-%d')}"
