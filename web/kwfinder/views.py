@@ -145,7 +145,7 @@ class KeitaroDailyAppDataView(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, ]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, ]
     filterset_fields = {
-        'app__id': ['exact', ],
+        'app__id': ['exact', 'in'],
         'date': ['exact', 'gte', 'lte']
     }
     ordering_fields = ['date', ]
@@ -174,8 +174,8 @@ class ConsoleDailyDataView(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, ]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, ]
     filterset_fields = {
-        'app__id': ['exact', ],
-        'keyword__id': ['exact', ],
+        'app__id': ['exact', 'in'],
+        'keyword__id': ['exact', 'in'],
         'date': ['exact', 'gte', 'lte']
     }
     ordering_fields = ['date', ]

@@ -21,7 +21,15 @@ let params = {
         isLoading: false,
         states: {},
         chart: null
-    }
+    },
+    keitaro: {
+        isLoading: false,
+        data: []
+    },
+    console: {
+        isLoading: false,
+        data: []
+    },
 }
 
 const closeModalButtons = document.querySelectorAll('[data-close-button]');
@@ -116,7 +124,7 @@ function applySettings() {
 
 // App controller
 
-function setChooseAppEvents(){
+function setChooseAppEvents() {
     let apps = document.getElementsByClassName("app_list--element");
     for (let i = 0; apps.length > i; i++) {
         apps[i].addEventListener('mousedown', chooseApp);
@@ -140,13 +148,16 @@ function chooseApp(e) {
         return;
 
     let app_id = appObj.getAttribute('data-id');
+    let app_num = appObj.getAttribute('data-num');
+    let app_name = appObj.getAttribute('data-name');
     if (params.apps.chosen.filter(app => app.id == app_id).length != 0) {
         return;
     }
-    
+
     let app = {
         id: app_id,
-        name: appObj.innerHTML
+        name: app_name,
+        num: app_num
     };
     params.apps.chosen.push(app);
     getKeywords();
@@ -161,7 +172,7 @@ function removeApp(e) {
 
     dropdownObj.classList.remove("dropdown--element__disabled");
     params.apps.chosen = removeObjFromListById(app_id, params.apps.chosen);
-    
+
     appObj.remove();
     params.keywords.chosen = [];
     getKeywords();
@@ -185,9 +196,9 @@ function inputAppSearch() {
     let search_app = document.querySelector(".app_finder").value;
     let appObjs = document.querySelectorAll(".app_list--element");
 
-    for (let i = 0; i < appObjs.length; i++){
+    for (let i = 0; i < appObjs.length; i++) {
         let obj = appObjs[i]
-        if (search_app == "" || obj.innerHTML.toLowerCase().includes(search_app.toLowerCase())){
+        if (search_app == "" || obj.innerHTML.toLowerCase().includes(search_app.toLowerCase())) {
             obj.classList.remove("dropdown--element__filtered");
         } else {
             obj.classList.add("dropdown--element__filtered");
@@ -211,7 +222,7 @@ async function getKeywords(url, search_str) {
             for (let i in params.apps.chosen) {
                 let app = params.apps.chosen[i];
                 data_app_ids += `${app.id}`;
-    
+
                 if (i != params.apps.chosen.length - 1)
                     data_app_ids += ',';
             }
@@ -219,7 +230,7 @@ async function getKeywords(url, search_str) {
 
         url = `/keywords/?has_data=${has_data}&data_app_ids=${data_app_ids}&start_date=${from.format("yyyy-mm-dd")}&end_date=${to.format("yyyy-mm-dd")}&limit=${params.keywords.limit}`;
 
-        if (search_str !== undefined){
+        if (search_str !== undefined) {
             url += `&search=${search_str}`;
         }
     }
@@ -377,6 +388,61 @@ function inputSlider() {
     main.style.width = `${this.value}%`;
 }
 
+// Keitaro controller 
+
+async function loadKeitaroData() {
+    if (params.keitaro.isLoading) {
+        console.log("Keitaro data is already loading!");
+        return
+    }
+    console.log("Keitaro data is loading!");
+    params.keitaro.data = [];
+    params.keitaro.isLoading = true;
+    let ids = params.apps.chosen.reduce((prev, current) => `${prev},${current.id}`, "");
+
+    let url = `/keitaro_data/?ordering=date&date__gte=${datepicker.date.from.format("yyyy-mm-dd")}&date__lte=${datepicker.date.to.format("yyyy-mm-dd")}&app__id__in=${ids}`;
+
+    while (url) {
+        let response = await fetch(url)
+            .then((response) => {
+                return response.json();
+            });
+        params.keitaro.data = params.keitaro.data.concat(response.results);
+        url = response.next;
+    }
+    params.keitaro.isLoading = false;
+    console.log("Keitaro data is loaded!");
+    updateChart();
+}
+
+// Console controller
+
+async function loadConsoleData() {
+    if (params.console.isLoading) {
+        console.log("Console data is already loading!");
+        return
+    }
+    console.log("Console data is loading!");
+    params.console.data = [];
+    params.console.isLoading = true;
+    let app_ids = params.apps.chosen.reduce((prev, current) => `${prev},${current.id}`, "");
+    let keyword_ids = params.keywords.chosen.reduce((prev, current) => `${prev},${current.id}`, "");
+
+    let url = `/console_data/?ordering=date&date__gte=${datepicker.date.from.format("yyyy-mm-dd")}&date__lte=${datepicker.date.to.format("yyyy-mm-dd")}&app__id__in=${app_ids}&keyword__id__in=${keyword_ids}`;
+
+    while (url) {
+        let response = await fetch(url)
+            .then((response) => {
+                return response.json();
+            });
+        params.console.data = params.console.data.concat(response.results);
+        url = response.next;
+    }
+    params.console.isLoading = false;
+    console.log("Console data is loaded!");
+    updateChart();
+}
+
 // Stata controller
 
 function showStats() {
@@ -396,7 +462,11 @@ function showStats() {
     params.stata.isLoading = true;
     params.stata.states = {};
     params.stata.labels = getLabels();
+    params.keitaro.data = [];
+    params.console.data = [];
 
+    loadKeitaroData();
+    loadConsoleData();
     for (let i in params.apps.chosen) {
         let app = params.apps.chosen[i];
         params.stata.states[app.id] = {};
@@ -413,7 +483,7 @@ async function getStats(app_id, keyword_id) {
     const { from, to } = getDateRange();
     let url = `/daily_data/?app__id=${app_id}&keyword__id=${keyword_id}&date__gte=${from.format("yyyy-mm-dd")}&date__lte=${to.format("yyyy-mm-dd")}&ordering=date`;
     let results = [];
-    while (true) {
+    while (url) {
         let response = await fetch(url)
             .then((response) => {
                 return response.json();
@@ -422,8 +492,6 @@ async function getStats(app_id, keyword_id) {
         for (let i in response.results) {
             results.push(response.results[i]);
         }
-        if (response.next == null)
-            break;
         url = response.next;
     }
     params.stata.states[app_id][keyword_id] = 'loaded';
@@ -433,16 +501,22 @@ async function getStats(app_id, keyword_id) {
 
     if (isAllDataLoaded()) {
         params.stata.isLoading = false;
-        let showData = document.getElementsByClassName("show_data")[0];
-        if (showData.classList.contains('button__disabled'))
-            showData.classList.remove('button__disabled');
-        setupCharts()
+        updateChart();
     }
+}
+
+function updateChart() {
+    if (!isAllDataLoaded() || params.keitaro.isLoading || params.console.isLoading) {
+        return;
+    }
+    let showData = document.querySelector(".show_data");
+    showData.classList.remove('button__disabled');
+    setupCharts();
 }
 
 function createDataSet(data, app_id, keyword_id) {
     let dataset = {
-        label: `${isObjWithIdInList(app_id, params.apps.chosen).name} - ${isObjWithIdInList(keyword_id, params.keywords.chosen).name}`,
+        label: `${isObjWithIdInList(app_id, params.apps.chosen).num} - ${isObjWithIdInList(keyword_id, params.keywords.chosen).name}`,
         borderColor: randomRGB(),
         data: [],
         app_id: app_id,
@@ -501,16 +575,64 @@ function setupCharts() {
         options: {
             scales: {
                 y: {
-                    suggestedMin: 0,
-                    reverse: true
+                    suggestedMin: 1,
+                    reverse: true,
+                    ticks: {
+                        stepSize: 1
+                    }
                 }
             },
-            // plugins: {
-            //     tooltip: {
-            //       // Tooltip will only receive click events
-            //       events: ['click']
-            //     }
-            // }
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            console.log(context);
+                            let label = context.dataset.label || '';
+
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += `${context.parsed.y}`;
+                            }
+
+                            if (context.parsed.x === null) {
+                                return label;
+                            }
+
+                            let date = params.stata.labels[context.parsed.x];
+
+                            let keitaros_data = params.keitaro.data.filter(data => data.app == context.dataset.app_id && data.date == date);
+                            let lines = [label,];
+                            if (keitaros_data.length != 0) {
+                                let k_data = keitaros_data[0];
+                                lines.push(
+                                    '',
+                                    'Кейтаро',
+                                    `Уники: ${k_data.unique_users_count}`,
+                                    `Конверсии: ${k_data.conversions_count}`,
+                                    `Продажи: ${k_data.sales_count}`,
+                                );
+                            }
+
+
+                            let console_data = params.console.data.filter(data => data.app == context.dataset.app_id && data.date == date && context.dataset.keyword_id == data.keyword);
+                            if (console_data.length != 0) {
+                                let c_data = console_data[0];
+                                lines.push(
+                                    '',
+                                    'Консоль',
+                                    `Посетители: ${c_data.views}`,
+                                    `Установки: ${c_data.installs}`,
+                                    `Конверсия: ${c_data.conversion}%`,
+                                );
+                            };
+
+                            return lines;
+                        }
+                    }
+                }
+            },
             onClick: graphClickEvent,
         }
     };
@@ -532,7 +654,7 @@ function graphClickEvent(event, array) {
     openKeywordPickerModal(array)
 }
 
-function openKeywordPickerModal(array){
+function openKeywordPickerModal(array) {
     let modal = document.getElementById("modal-picker");
     let modalBody = modal.getElementsByClassName("modal-body")[0];
     modalBody.innerHTML = "";

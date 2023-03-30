@@ -39,7 +39,7 @@
     <input type="text" class="app_finder">
     <ul class="app_list app_list__hidden dropdown">
       {% for app in apps %}
-        <li tabIndex="-1" class="app_list--element dropdown--element" data-id="{{ app.id }}">[{{ app.num }}] {{ app.name }}</li>
+        <li tabIndex="-1" class="app_list--element dropdown--element" data-id="{{ app.id }}" data-num="{{ app.num }}" data-name="{{ app.name }}">[{{ app.num }}] {{ app.name }}</li>
       {% endfor %}
     </ul>
   </div>
