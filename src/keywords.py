@@ -156,6 +156,8 @@ def __getMaxRepeatedElementOrAvg(l: List[int]) -> int:
 
     s = set(l)
     if len(l) == len(s):
+        if len(l) == 1:
+            return l[0]
         if 0 in l:
             return int(sum(l) / (len(l) - 1))
         return int(sum(l) / len(l))
