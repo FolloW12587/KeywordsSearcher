@@ -1499,7 +1499,7 @@ button.keyword_picker_modal {
 }
 
 /* App analytics */
-.keywords_select {
+.settings_select {
     margin-left: 20px;
     border-radius: 5px;
 }
@@ -1594,4 +1594,52 @@ button.keyword_picker_modal {
     border-radius: 5px;
     min-width: 65px;
     cursor: pointer;
+}
+
+/* tooltip */
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.app_cell.highlighted {
+    -webkit-box-shadow: 1px 0px 10px 2px rgba(255, 0, 0, 0.5);
+    -moz-box-shadow: 1px 0px 10px 2px rgba(255, 0, 0, 0.5);
+    box-shadow: 1px 0px 10px 2px rgba(255, 0, 0, 0.5);
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    top: 110%;
+    left: 50%;
+    margin-left: -60px;
+
+    /* Fade in tooltip - takes 1 second to go from 0% to 100% opac: */
+    opacity: 0;
+    transition: opacity 1s;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent black transparent;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
 }

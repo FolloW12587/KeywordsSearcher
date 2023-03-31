@@ -2,9 +2,10 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.viewsets import ReadOnlyModelViewSet
-from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from . import models, serializers
 from web.apps.permissions import get_allowed_apps
@@ -93,8 +94,10 @@ class DailyAggregatedDataView(ReadOnlyModelViewSet):
     # filterset_fields = ['keyword__id', 'app__id', ]
     filterset_fields = {
         'keyword__id': ['exact', ],
+        'keyword__region': ['exact', ],
         'app__id': ['exact', ],
-        'date': ['exact', 'gte', 'lte']
+        'app__group': ['exact', ],
+        'date': ['exact', 'gte', 'lte'],
     }
     ordering_fields = ['date', ]
 
@@ -108,6 +111,53 @@ class DailyAggregatedDataView(ReadOnlyModelViewSet):
 
         return queryset.filter(
             app__in=self.request.user.profile.apps_allowed.all())
+
+
+class DailyAggregatedJoinedDataView(ReadOnlyModelViewSet):
+    """ View for output daily aggregated data for the given date range.
+    `date__gte` should be the start of the range and `date__lte` is its end.
+    Also it has filters by `keyword__id` and `app__id` fields. """
+    queryset = models.DailyAggregatedPositionData.objects.all()
+    serializer_class = serializers.DailyAggregatedPositionJoindedDataSerializer
+    permission_classes = [IsAuthenticated, ]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, ]
+    # filterset_fields = ['keyword__id', 'app__id', ]
+    filterset_fields = {
+        'keyword__id': ['exact', ],
+        'keyword__region': ['exact', ],
+        'app__id': ['exact', ],
+        'app__group': ['exact', ],
+        'date': ['exact', 'gte', 'lte'],
+        'position': ['lte', 'gte', ]
+    }
+    ordering_fields = ['date', ]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.user.has_perm('kwfinder.can_see_all'):
+            return queryset
+
+        if not hasattr(self.request.user, 'profile'):
+            return queryset.none()
+
+        return queryset.filter(
+            app__in=self.request.user.profile.apps_allowed.all())
+
+    def list(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        sql, params = queryset.query.sql_with_params()
+        raw_sql = """
+            select * 
+            from ({}) as filtered_data
+                LEFT JOIN kwfinder_consoledailydata ON filtered_data.app_id = kwfinder_consoledailydata.app_id
+                and filtered_data.keyword_id = kwfinder_consoledailydata.keyword_id
+                and filtered_data.date = kwfinder_consoledailydata.date;
+        """.format(sql)
+
+        queryset = models.DailyAggregatedPositionData.objects.raw(raw_sql, params)
+        Serializer = super().get_serializer_class()
+        serializer = Serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class AppPositionScriptRunDataView(ReadOnlyModelViewSet):
@@ -151,7 +201,8 @@ class KeitaroDailyAppDataView(ReadOnlyModelViewSet):
     ordering_fields = ['date', ]
 
     def get_serializer_class(self):
-        if self.request.user.has_perm('kwfinder.can_see_keitaro_revenue'):  # type: ignore
+        # type: ignore
+        if self.request.user.has_perm('kwfinder.can_see_keitaro_revenue'):
             return serializers.KeitaroDailyAppDataSerializer
 
         return serializers.KeitaroDailyAppDataSerializerNonStaff
@@ -221,3 +272,12 @@ def dailyAnalytics(request):
     """ View for showing daily analytics page """
     apps = get_allowed_apps(request)
     return render(request, 'kwfinder/daily_stats.html', {'apps': apps})
+
+
+@login_required
+def groupsAnalytics(request):
+    """ View for showing groups analytics page """
+    groups = models.AppGroup.objects.all()
+    regions = models.ASOWorldRegion.objects.all()
+    return render(request, 'kwfinder/groups_stats.html',
+                  {'groups': groups, "regions": regions})

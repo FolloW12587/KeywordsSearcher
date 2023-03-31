@@ -18,6 +18,19 @@ class AppPlatform(models.Model):
         return self.name
 
 
+class AppGroup(models.Model):
+    """ Модель, описывающая группу приложений """
+    id = models.AutoField("id", primary_key=True)
+    name = models.CharField("Название", max_length=255)
+
+    class Meta:
+        verbose_name = "Группа приложений"
+        verbose_name_plural = "Группы приложений"
+
+    def __str__(self):
+        return self.name
+
+
 class ASOWorldRegion(models.Model):
     """ Модель, описывающая регионы из ASO World """
     code = models.CharField("Код", max_length=2, primary_key=True, unique=True)
@@ -31,7 +44,7 @@ class ASOWorldRegion(models.Model):
     class Meta:
         verbose_name = "Регион (ASO World)"
         verbose_name_plural = "Регионы (ASO World)"
-        ordering = ['code',]
+        ordering = ['code', ]
 
     def __str__(self):
         return f"[{self.code}] {self.name}"
@@ -42,14 +55,18 @@ class App(models.Model):
     id = models.AutoField("id", primary_key=True)
     name = models.CharField("Название", max_length=255)
     package_id = models.CharField("ID пакета", max_length=255, unique=True)
-    
+
     platform = models.ForeignKey(
         AppPlatform, verbose_name="Платформа", on_delete=models.CASCADE)
+    group = models.ForeignKey(AppGroup,
+                              verbose_name="Группа",
+                              on_delete=models.CASCADE,
+                              null=True, blank=True, default=None)
     region = models.ForeignKey(
         ASOWorldRegion, on_delete=models.CASCADE,
         verbose_name="Регион")
     keywords = models.ManyToManyField("Keyword", verbose_name="Ключевые слова")
-    
+
     is_active = models.BooleanField("Активно", default=True, blank=True)
     icon = models.ImageField(
         "Иконка", upload_to="app_icons/", null=True, blank=True)

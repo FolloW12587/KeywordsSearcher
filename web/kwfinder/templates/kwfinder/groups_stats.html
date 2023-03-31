@@ -1,0 +1,59 @@
+{% extends "kwfinder/base.html" %}
+{% load static %}
+{% block title %}Daily stats{% endblock %}
+{% block loads %}
+  <script type="module" src="{% static "kwfinder/js/datepicker.js" %}"></script>
+  <script type="module" src="{% static "kwfinder/js/groups_stats.js" %}"></script>
+{% endblock %}
+{% block header_name %} Аналитика групп {% endblock %}
+
+{% block content %}
+<div class="settings">
+  <div style="display: flex;">
+    <div class="date_range--picker"></div>
+    <select name="group" id="group" class="groups_select settings_select">
+      <option hidden value selected disabled>-- Выберите группу --</option>
+      {% for group in groups %}
+        <option value="{{ group.id }}">{{ group.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="region" id="region" class="regions_select settings_select">
+      <option hidden value selected disabled>-- Выберите регион --</option>
+      {% for region in regions %}
+        <option value="{{ region.code }}">[{{ region.code }}] {{ region.name }}</option>
+      {% endfor %}
+    </select>
+    <div class="load_data">
+      <button id="load_data__button" class="load_data__button" disabled>Загрузить</button>
+    </div>
+  </div>
+</div>
+<table class="groups_analytics_table apps_info_table" id="table">
+  <tbody>
+      <tr class="header_row">
+          <th>Ключевое слово</th>
+          <th>Установки</th>
+          <th style="width: 66px;">#1</th>
+          <th style="width: 66px;">#2</th>
+          <th style="width: 66px;">#3</th>
+          <th style="width: 66px;">#4</th>
+          <th style="width: 66px;">#5</th>
+          <th style="width: 66px;">#6</th>
+          <th style="width: 66px;">#7</th>
+          <th style="width: 66px;">#8</th>
+          <th style="width: 66px;">#9</th>
+          <th style="width: 66px;">#10</th>
+      </tr>
+  </tbody>
+</table>
+
+<div class="modal" id="modal">
+  <div class="modal-header">
+    <div class="title"></div>
+    <button data-close-button class="close-button">&times;</button>
+  </div>
+  <div class="modal-body">
+  </div>
+</div>
+<div id="overlay"></div>
+{% endblock %}

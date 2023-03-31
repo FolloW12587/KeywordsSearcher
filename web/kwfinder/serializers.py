@@ -13,7 +13,7 @@ class ASOWorldRegionSerializer(serializers.ModelSerializer):
 class AppSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.App
-        fields = '__all__'
+        exclude = ['keywords',]
 
 
 class AppPlatformSerializer(serializers.ModelSerializer):
@@ -29,6 +29,17 @@ class KeywordSerializer(serializers.ModelSerializer):
 
 
 class DailyAggregatedPositionDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DailyAggregatedPositionData
+        fields = '__all__'
+
+
+class DailyAggregatedPositionJoindedDataSerializer(serializers.ModelSerializer):
+    views = serializers.IntegerField()
+    installs = serializers.IntegerField()
+    app = AppSerializer()
+    keyword = KeywordSerializer()
+
     class Meta:
         model = models.DailyAggregatedPositionData
         fields = '__all__'

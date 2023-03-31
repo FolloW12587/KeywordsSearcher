@@ -84,6 +84,26 @@ class AppPositionScriptRunAdmin(admin.ModelAdmin):
     list_display = ('id', 'started_at', 'ended_at')
 
 
+class AppInline(admin.TabularInline):
+    fields = ('num', 'name', 'region', 'is_active')
+    model = models.App
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request: HttpRequest, obj=None) -> bool:
+        return False
+        
+
+@admin.register(models.AppGroup)
+class AppGroupAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name',)
+    inlines = (AppInline,)
+
+
 @admin.register(models.AppPositionScriptRunData)
 class AppPositionScriptRunDataAdmin(admin.ModelAdmin):
     list_display = ('id', 'run', 'keyword', 'app', 'position')

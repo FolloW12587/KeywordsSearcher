@@ -11,6 +11,8 @@ router.register('app_platforms', views.AppPlatformView,
 router.register('keywords', views.KeywordView, basename='keywords')
 router.register('daily_data', views.DailyAggregatedDataView,
                 basename='daily_data')
+router.register('daily_data_joined', views.DailyAggregatedJoinedDataView,
+                basename='daily_data_joined')
 router.register('keitaro_data', views.KeitaroDailyAppDataView,
                 basename='keitaro_data')
 router.register('console_data', views.ConsoleDailyDataView,
@@ -25,5 +27,8 @@ urlpatterns = [
     path('',
          views.dailyAnalytics,
          name='analytics'),
+    path('groups_analytics/',
+         views.groupsAnalytics,
+         name='groups_analytics'),
 ]
 urlpatterns += router.urls
