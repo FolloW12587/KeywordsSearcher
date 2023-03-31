@@ -154,9 +154,15 @@ class DailyAggregatedJoinedDataView(ReadOnlyModelViewSet):
                 and filtered_data.date = kwfinder_consoledailydata.date;
         """.format(sql)
 
-        queryset = models.DailyAggregatedPositionData.objects.raw(raw_sql, params)
-        Serializer = super().get_serializer_class()
-        serializer = Serializer(queryset, many=True)
+        queryset = models.DailyAggregatedPositionData.objects.raw(
+            raw_sql, params)
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
 

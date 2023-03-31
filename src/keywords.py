@@ -130,6 +130,7 @@ def mergeKeywordStatsForDays(day: str):
                 runs=runs))
 
     models.DailyAggregatedPositionData.objects.bulk_create(data)
+    logger.info(f"Merging is ended. {len(data)} instances created.")
 
 
 def __aggregateKeywordStats(day: str, app: models.App,

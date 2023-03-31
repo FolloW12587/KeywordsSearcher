@@ -54,28 +54,6 @@ function openModal(modal) {
     overlay.classList.add('active')
 }
 
-async function loadPositionData(date) {
-    let modal = document.getElementById("modal-keyword");
-    let modalBody = modal.getElementsByClassName("modal-body")[0];
-    modalBody.innerHTML = '<img class="spinner" src="/static/kwfinder/img/spinner.gif" style="margin: 0 auto;">';
-    openModal(modal);
-    modal.getElementsByClassName("title")[0].innerHTML = date;
-
-    let url = `/position_data/?app__id=${app_id}&keyword__id=${params.keyword_selected}&date=${date}&ordering=run__started_at`;
-    let response = await fetch(url)
-        .then((response) => {
-            return response.json();
-        });
-
-    let results = response.results;
-    let s = "";
-    for (var i = 0; i < results.length; i++) {
-        s += `<div>${results[i].datetime}: ${results[i].position}</div>`;
-    }
-
-    modalBody.innerHTML = s;
-}
-
 function groupChange(e) {
     params.group_selected = group.value;
     updateButtons();
@@ -149,6 +127,8 @@ function prepareData() {
                 installs: 0
             }
             params.data.keywords.push(stored_keyword);
+        } else {
+            stored_keyword = stored_keyword[0];
         }
 
         stored_keyword.installs += info.installs ? info.installs : 0
@@ -218,12 +198,15 @@ async function loadTableData() {
     params.data.isLoading = true;
 
     let url = `/daily_data_joined/?date=${params.date_selected.format("yyyy-mm-dd")}&app__group=${params.group_selected}&keyword__region=${params.region_selected}&position__lte=10&position__gte=1`;
-
-    let response = await fetch(url)
-        .then((response) => {
-            return response.json();
-        });
-    params.data.data = response;
+    
+    while (url){
+        let response = await fetch(url)
+            .then((response) => {
+                return response.json();
+            });
+        params.data.data = params.data.data.concat(response.results);
+        url = response.next;
+    }
     params.data.isLoading = false;
     console.log("Data is loaded!");
     console.log(params);
