@@ -116,14 +116,13 @@ def __getKeywordStatistics(keyword: models.Keyword, thread_num: int,
 def mergeKeywordStatsForDays(day: str):
     """ Merges all stats for a `day` """
     logger.info(f"Starting merging stats for {day}.")
-    runs = models.AppPositionScriptRun.objects.filter(
-        started_at__range=[f"{day} 00:00:00", f"{day} 23:59:59"]).all()
-    keywords = models.Keyword.objects.all()
+    runs = list(models.AppPositionScriptRun.objects.filter(
+        started_at__range=[f"{day} 00:00:00", f"{day} 23:59:59"]).all())
     apps = models.App.objects.all()
 
     data = []
-    for keyword in keywords:
-        for app in apps:
+    for app in apps:
+        for keyword in app.keywords:
             data.append(__aggregateKeywordStats(
                 day=day,
                 app=app,
@@ -135,7 +134,7 @@ def mergeKeywordStatsForDays(day: str):
 
 def __aggregateKeywordStats(day: str, app: models.App,
                             keyword: models.Keyword,
-                            runs: QuerySet[models.AppPositionScriptRun]) -> models.DailyAggregatedPositionData:
+                            runs: list[models.AppPositionScriptRun]) -> models.DailyAggregatedPositionData:
     """ Aggregates stats for given `day` for an `app` and `keyword` 
     in bunch of `runs` and returns DailyAggregatedPositionData instance """
     data = models.AppPositionScriptRunData.objects.filter(
