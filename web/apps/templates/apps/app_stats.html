@@ -3,7 +3,7 @@
 {% block title %}Apps stats{% endblock %}
 {% block loads %}
 <script type="module" src="{% static "kwfinder/js/datepicker.js" %}"></script>
-<script type="module" src="{% static "apps/js/app_stats.js" %}"></script>
+<script type="module" src="{% static "apps/js/app_stats.js" %}?version=1"></script>
 <script>
     const app_id = {{ app.id }};
     const can_see_keitaro_revenue = {% if perms.kwfinder.can_see_keitaro_revenue %} true {% else %} false {% endif %};

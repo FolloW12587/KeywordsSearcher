@@ -3,7 +3,7 @@
 {% block title %}Console data Add{% endblock %}
 {% block loads %}
 <script type="module" src="{% static "kwfinder/js/datepicker.js" %}"></script>
-<script type="module" src="{% static "apps/js/console_data_add.js" %}"></script>
+<script type="module" src="{% static "apps/js/console_data_add.js" %}?version=1"></script>
 <script>
     const app_id = {{ app.id }};
     const app_name = "{{ app.name }}";
