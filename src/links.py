@@ -12,13 +12,14 @@ logger = logging.getLogger(__name__)
 def getGoogleLinks(keyword: str, strore_attributes: str,
                    thread_num: int = 0) -> List[str]:
     """ Uploads and returns links by the given `keyword`. """
+    logger.info(f"Getting links for keyword {keyword} with store attributes {strore_attributes} in thread {thread_num}")
     gPS = GooglePlayService(
         base_url=__getGoogleBaseUrl(), thread_num=thread_num)
 
     links = gPS.getAllAppLinks(keyword=keyword, attributes=strore_attributes)
     logger.info(f"{len(links)} links loaded in thread {thread_num}")
     if len(links) == 0:
-        raise LinksNotFound("Didn't find any links. Try angain")
+        raise LinksNotFound("Didn't find any links. Try angain in thread {thread_num}")
 
     return links
 
