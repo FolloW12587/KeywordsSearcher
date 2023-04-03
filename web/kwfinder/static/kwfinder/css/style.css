@@ -1469,6 +1469,9 @@ button.keyword_picker_modal {
     font-family: arial, sans-serif;
     border-collapse: collapse;
     width: 100%;
+}
+
+.keywords_analytics_table{
     overflow-x: auto;
     white-space: nowrap;
     display: block;
