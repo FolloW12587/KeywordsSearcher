@@ -9,22 +9,19 @@ let params = {
     },
     group_selected: null,
     region_selected: null,
-    date_selected: datepicker.date.from,
+    date_range_selected: datepicker.getDaysArray(),
 }
 
 const table = document.getElementById("table");
+const table_header = table.querySelector(".header_row");
 const load_data_button = document.getElementById("load_data__button");
-const group = document.getElementById("group");
-const region = document.getElementById("region");
 const closeModalButtons = document.querySelectorAll('[data-close-button]');
 const overlay = document.getElementById('overlay');
 
 document.addEventListener("DOMContentLoaded", () => {
-    datepicker.install("single");
+    datepicker.install();
     datepicker.render();
 
-    group.addEventListener('change', groupChange);
-    region.addEventListener('change', regionChange);
     load_data_button.addEventListener('click', loadData);
 
     overlay.addEventListener('click', () => {
@@ -54,62 +51,40 @@ function openModal(modal) {
     overlay.classList.add('active')
 }
 
-function groupChange(e) {
-    params.group_selected = group.value;
-    updateButtons();
-}
-
-function regionChange(e) {
-    params.region_selected = region.value;
-    updateButtons();
-}
 
 function updateTable() {
     updateButtons();
-    if (isLoadingOrParamsNotSelected()) {
+    if (params.data.isLoading) {
+        removeHeader();
         removeAllTableRows();
         return
     }
 
     prepareData();
 
+    let header_s = `<th class="sticky">Ключевое слово</th>`;
+    params.date_range_selected.forEach(date => {
+        header_s += `<th>${date}</th>`;
+    });
+    table_header.innerHTML = header_s;
+
     params.data.keywords.forEach(keyword => {
         let info = params.data.rows[keyword.id];
         let row = document.createElement("tr");
         row.classList.add('row');
-
-        let s = `<td>${keyword.name}</td><td>${keyword.installs}</td>`;
-
-        for (let pos = 1; pos < 11; pos++) {
-            let app_info_list = info.filter(app_info => app_info.position == pos);
-            if (app_info_list.length == 0) {
-                s += '<td style="width: 66px;">-</td>';
-                continue;
+        let s = `<td class="sticky">${keyword.name}</rd>`;
+        
+        params.date_range_selected.forEach(date => {
+            let data = info.filter(d => d.date == date);
+            if (data.length == 0){
+                s += `<td>-</td>`;
+            } else {
+                s += `<td><p style="text-align: center; margin-bottom: 5px;"><strong>${data[0].position} место</strong></p><p>${data[0].views ? data[0].views : 0} посещений</p><p>${data[0].installs ? data[0].installs : 0} установок</p></td>`;
             }
-
-            s += '<td style="width: 66px;">';
-            app_info_list.forEach(app_info => {
-                if (app_info.app.icon) {
-                    let img = `<img src="${app_info.app.icon}" width="50" height="50">`;
-                    s += `<div class="app_cell tooltip" data-id="${app_info.app.id}">
-                        ${img}
-                        <span class="tooltiptext">${app_info.app.num} </span>
-                    </div>`;
-                } else {
-                    s += s += `<div class="app_cell" data-id="${app_info.app.id}">
-                        ${app_info.app.num}</div>`;
-                }
-            });
-            s += '</td>';
-        }
+        });
 
         row.innerHTML = s;
 
-        let app_cells = row.querySelectorAll(".app_cell");
-        app_cells.forEach(app_cell => {
-            app_cell.addEventListener('mouseover', appCellHovered);
-            app_cell.addEventListener('mouseout', appCellUnHovered);
-        })
         table.getElementsByTagName("tbody")[0].appendChild(row);
     })
 }
@@ -125,45 +100,22 @@ function prepareData() {
             stored_keyword = {
                 id: keyword.id,
                 name: keyword.name,
-                installs: 0
             }
             params.data.keywords.push(stored_keyword);
         } else {
             stored_keyword = stored_keyword[0];
         }
 
-        stored_keyword.installs += info.installs ? info.installs : 0
         if (params.data.rows[stored_keyword.id] == undefined) {
             params.data.rows[stored_keyword.id] = [];
         }
         params.data.rows[stored_keyword.id].push(info);
     });
 
-    params.data.keywords.sort((a, b) => b.installs - a.installs);
-}
-
-function appCellHovered(e) {
-    let target = e.currentTarget;
-    let app_id = target.getAttribute("data-id");
-    
-    let app_cells = table.querySelectorAll(`.app_cell[data-id="${app_id}"]`);
-    app_cells.forEach(app_cell => {
-        app_cell.classList.add("highlighted");
-    });
-}
-
-function appCellUnHovered(e) {
-    let target = e.currentTarget;
-    let app_id = target.getAttribute("data-id");
-    
-    let app_cells = table.querySelectorAll(`.app_cell[data-id="${app_id}"]`);
-    app_cells.forEach(app_cell => {
-        app_cell.classList.remove("highlighted");
-    });
 }
 
 function updateButtons() {
-    if (isLoadingOrParamsNotSelected()) {
+    if (params.data.isLoading) {
         load_data_button.disabled = true;
         return
     }
@@ -171,9 +123,6 @@ function updateButtons() {
     load_data_button.disabled = false;
 }
 
-function isLoadingOrParamsNotSelected() {
-    return params.data.isLoading || !params.region_selected || !params.group_selected
-}
 
 function removeAllTableRows() {
     let rows = table.getElementsByClassName("row");
@@ -182,9 +131,14 @@ function removeAllTableRows() {
     }
 }
 
-function loadData() {
-    params.date_selected = datepicker.date.from;
+function removeHeader() {
+    table_header.innerHTML = "";
+}
 
+function loadData() {
+    params.date_range_selected = datepicker.getDaysArray();
+
+    removeHeader();
     removeAllTableRows();
     loadTableData();
 }
@@ -199,9 +153,9 @@ async function loadTableData() {
     params.data.isLoading = true;
     updateButtons();
 
-    let url = `/daily_data_joined/?date=${params.date_selected.format("yyyy-mm-dd")}&app__group=${params.group_selected}&keyword__region=${params.region_selected}&position__lte=10&position__gte=1`;
-    
-    while (url){
+    let url = `/daily_data_joined/?date__gte=${params.date_range_selected[0]}&date__lte=${params.date_range_selected[params.date_range_selected.length - 1]}&app__id=${app_id}`;
+
+    while (url) {
         let response = await fetch(url)
             .then((response) => {
                 return response.json();

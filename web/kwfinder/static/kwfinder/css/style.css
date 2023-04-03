@@ -1469,6 +1469,9 @@ button.keyword_picker_modal {
     font-family: arial, sans-serif;
     border-collapse: collapse;
     width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    display: block;
 }
 
 .apps_info_table td,
@@ -1489,6 +1492,15 @@ button.keyword_picker_modal {
 .apps_info_table tr.row:nth-child(even),
 .console_data_add_table tr.row:nth-child(even) {
     background-color: #dddddd;
+}
+
+.apps_info_table tr.row:nth-child(odd),
+.console_data_add_table tr.row:nth-child(odd) {
+    background-color: #fff;
+}
+
+.header_row {
+    background-color: #fff;
 }
 
 .apps_table tr.row {
@@ -1654,4 +1666,25 @@ button.keyword_picker_modal {
 .tooltip:hover .tooltiptext {
     visibility: visible;
     opacity: 1;
+}
+
+
+td.sticky,
+th.sticky {
+    left: 0;
+    position: sticky;
+    background-color: inherit;
+    /* border: 0 1px 0 0 solid #000; */
+    /* position: relative; */
+}
+
+td.sticky::after,
+th.sticky::after {
+    position: absolute;
+    right: 0;
+    top: 0;
+    content: "";
+    width: 1px;
+    height: 100%;
+    background-color: #000;
 }

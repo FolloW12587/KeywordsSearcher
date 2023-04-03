@@ -111,10 +111,18 @@ def add_app(request):
 @login_required
 def app_keywords(request, app_id: int):
     app = get_object_or_404(models.App, pk=app_id)
-    # return JsonResponse({"error": "App does not exist"}, status=404)
 
     keywords = app.keywords.all().order_by("region", "name")
     return render(request, 'apps/keywords/keywords.html', {'app': app, "keywords": keywords})
+
+
+@check_app_permissions
+@login_required
+def app_keywords_analytics(request, app_id: int):
+    app = get_object_or_404(models.App, pk=app_id)
+
+    keywords = app.keywords.all().order_by("region", "name")
+    return render(request, 'apps/keywords/keywords_analytics.html', {'app': app, "keywords": keywords})
 
 
 @check_app_permissions
