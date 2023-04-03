@@ -147,11 +147,28 @@ class DailyAggregatedJoinedDataView(ReadOnlyModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         sql, params = queryset.query.sql_with_params()
         raw_sql = """
-            select * 
+        SELECT filtered_data.id,
+            filtered_data.date,
+            filtered_data.app_id,
+            filtered_data.keyword_id,
+            filtered_data.position,
+            kwfinder_consoledailydata.installs,
+            kwfinder_consoledailydata.views,
+            aso_data.aso_installs
             from ({}) as filtered_data
                 LEFT JOIN kwfinder_consoledailydata ON filtered_data.app_id = kwfinder_consoledailydata.app_id
                 and filtered_data.keyword_id = kwfinder_consoledailydata.keyword_id
-                and filtered_data.date = kwfinder_consoledailydata.date;
+                and filtered_data.date = kwfinder_consoledailydata.date
+                LEFT JOIN (
+                    select kwfinder_asoworldorderkeyworddata.installs aso_installs,
+                        kwfinder_asoworldorderkeyworddata.date,
+                        kwfinder_asoworldorderkeyworddata.keyword_id,
+                        kwfinder_asoworldorder.app_id
+                    from kwfinder_asoworldorderkeyworddata
+                        LEFT JOIN kwfinder_asoworldorder on kwfinder_asoworldorderkeyworddata.order_id = kwfinder_asoworldorder.id
+                ) aso_data on filtered_data.app_id = aso_data.app_id
+                and filtered_data.keyword_id = aso_data.keyword_id
+                and filtered_data.date = aso_data.date
         """.format(sql)
 
         queryset = models.DailyAggregatedPositionData.objects.raw(

@@ -79,7 +79,11 @@ function updateTable() {
             if (data.length == 0){
                 s += `<td>-</td>`;
             } else {
-                s += `<td><p style="text-align: center; margin-bottom: 5px;"><strong>${data[0].position} место</strong></p><p>${data[0].views ? data[0].views : 0} посещений</p><p>${data[0].installs ? data[0].installs : 0} установок</p></td>`;
+                s += `<td>
+                    <p style="text-align: center; margin-bottom: 5px;"><strong>${data[0].position} место</strong></p>
+                    <p>${(data[0].views ? data[0].views : 0) - (data[0].aso_installs ? data[0].aso_installs : 0)} посещений</p>
+                    <p>${(data[0].installs ? data[0].installs : 0) - (data[0].aso_installs ? data[0].aso_installs : 0)} установок</p>
+                </td>`;
             }
         });
 

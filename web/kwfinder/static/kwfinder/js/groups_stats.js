@@ -78,7 +78,7 @@ function updateTable() {
         let row = document.createElement("tr");
         row.classList.add('row');
 
-        let s = `<td>${keyword.name}</td><td>${keyword.installs}</td>`;
+        let s = `<td>${keyword.name}</td><td>${keyword.installs - keyword.aso_installs}</td>`;
 
         for (let pos = 1; pos < 11; pos++) {
             let app_info_list = info.filter(app_info => app_info.position == pos);
@@ -125,21 +125,23 @@ function prepareData() {
             stored_keyword = {
                 id: keyword.id,
                 name: keyword.name,
-                installs: 0
+                installs: 0,
+                aso_installs: 0
             }
             params.data.keywords.push(stored_keyword);
         } else {
             stored_keyword = stored_keyword[0];
         }
 
-        stored_keyword.installs += info.installs ? info.installs : 0
+        stored_keyword.installs += info.installs ? info.installs : 0;
+        stored_keyword.aso_installs += info.aso_installs ? info.aso_installs : 0;
         if (params.data.rows[stored_keyword.id] == undefined) {
             params.data.rows[stored_keyword.id] = [];
         }
         params.data.rows[stored_keyword.id].push(info);
     });
 
-    params.data.keywords.sort((a, b) => b.installs - a.installs);
+    params.data.keywords.sort((a, b) => (b.installs - b.aso_installs) - (a.installs - a.aso_installs));
 }
 
 function appCellHovered(e) {

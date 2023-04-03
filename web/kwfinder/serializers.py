@@ -37,6 +37,7 @@ class DailyAggregatedPositionDataSerializer(serializers.ModelSerializer):
 class DailyAggregatedPositionJoindedDataSerializer(serializers.ModelSerializer):
     views = serializers.IntegerField()
     installs = serializers.IntegerField()
+    aso_installs = serializers.IntegerField()
     app = AppSerializer()
     keyword = KeywordSerializer()
 
