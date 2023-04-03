@@ -5,6 +5,7 @@ from time import sleep
 from typing import List
 
 from django.conf import settings
+from django.db.models import Count, Q
 from django.db.models.query import QuerySet
 from exceptions import LinksNotFound
 from src.links import getGoogleLinks
@@ -72,7 +73,11 @@ def __keywordsThreadFunc(keywords: List[models.Keyword],
 def __getSplittedKeywords() -> List[List[models.Keyword]]:
     """ Returns lists of keywords splitted approximately 
     equal by the number of threads """
-    keywords = list(models.Keyword.objects.all())
+    keywords_qs = models.Keyword.objects\
+        .annotate(app_count=Count("app", filter=Q(app__is_active=True)))\
+        .exclude(app_count=0)
+
+    keywords = list(keywords_qs)
     k, m = divmod(len(keywords), settings.NUMBER_OF_THREADS)
     return [keywords[i*k+min(i, m):(i+1)*k+min(i+1, m)]
             for i in range(settings.NUMBER_OF_THREADS)]
