@@ -122,7 +122,7 @@ def mergeKeywordStatsForDays(day: str):
 
     data = []
     for app in apps:
-        for keyword in app.keywords:
+        for keyword in app.keywords.all():
             data.append(__aggregateKeywordStats(
                 day=day,
                 app=app,
