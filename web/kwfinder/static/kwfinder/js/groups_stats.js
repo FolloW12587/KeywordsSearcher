@@ -80,26 +80,26 @@ function updateTable() {
         let s = `<td>${keyword.name}</td><td>${keyword.installs}</td>`;
 
         for (let pos = 1; pos < 11; pos++) {
-            let app_info = info.filter(app_info => app_info.position == pos);
-            if (app_info.length == 0) {
+            let app_info_list = info.filter(app_info => app_info.position == pos);
+            if (app_info_list.length == 0) {
                 s += '<td style="width: 66px;">-</td>';
                 continue;
             }
 
-            app_info = app_info[0];
-            if (app_info.app.icon) {
-                let img = `<img src="${app_info.app.icon}" width="50" height="50">`;
-                s += `<td style="width: 66px;">
-                <div class="app_cell tooltip" data-id="${app_info.app.id}">
-                    ${img}
-                    <span class="tooltiptext">${app_info.app.num} </span>
-                </div></td>`;
-            } else {
-                s += s += `<td style="width: 66px;">
-                <div class="app_cell" data-id="${app_info.app.id}">
-                    ${app_info.app.num} 
-                </div></td>`;
-            }
+            s += '<td style="width: 66px;">';
+            app_info_list.forEach(app_info => {
+                if (app_info.app.icon) {
+                    let img = `<img src="${app_info.app.icon}" width="50" height="50">`;
+                    s += `<div class="app_cell tooltip" data-id="${app_info.app.id}">
+                        ${img}
+                        <span class="tooltiptext">${app_info.app.num} </span>
+                    </div>`;
+                } else {
+                    s += s += `<div class="app_cell" data-id="${app_info.app.id}">
+                        ${app_info.app.num}</div>`;
+                }
+            });
+            s += '</td>';
         }
 
         row.innerHTML = s;

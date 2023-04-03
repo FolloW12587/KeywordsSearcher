@@ -1478,6 +1478,7 @@ button.keyword_picker_modal {
     border: 1px solid #dddddd;
     text-align: left;
     padding: 8px;
+    vertical-align: middle;
 }
 
 .apps_info_table th,
@@ -1603,17 +1604,25 @@ button.keyword_picker_modal {
     display: inline-block;
 }
 
+.app_cell {
+    margin-top: 8px;
+}
+
+.app_cell:first-child {
+    margin-top: 0;
+}
+
 .app_cell.highlighted {
-    -webkit-box-shadow: 1px 0px 10px 2px rgba(255, 0, 0, 0.5);
-    -moz-box-shadow: 1px 0px 10px 2px rgba(255, 0, 0, 0.5);
-    box-shadow: 1px 0px 10px 2px rgba(255, 0, 0, 0.5);
+    -webkit-box-shadow: 1px 0px 10px 5px rgba(255, 0, 0, 0.5);
+    -moz-box-shadow: 1px 0px 10px 5px rgba(255, 0, 0, 0.5);
+    box-shadow: 1px 0px 10px 5px rgba(255, 0, 0, 0.5);
 }
 
 .tooltip .tooltiptext {
     visibility: hidden;
     width: 120px;
-    background-color: black;
-    color: #fff;
+    background-color: #fff;
+    color: #000;
     text-align: center;
     border-radius: 6px;
     padding: 5px;
@@ -1622,6 +1631,9 @@ button.keyword_picker_modal {
     top: 110%;
     left: 50%;
     margin-left: -60px;
+    -webkit-box-shadow: 1px 0px 10px 2px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow: 1px 0px 10px 2px rgba(0, 0, 0, 0.5);
+    box-shadow: 1px 0px 10px 2px rgba(0, 0, 0, 0.5);
 
     /* Fade in tooltip - takes 1 second to go from 0% to 100% opac: */
     opacity: 0;
@@ -1636,7 +1648,7 @@ button.keyword_picker_modal {
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: transparent transparent black transparent;
+    border-color: transparent transparent white transparent;
 }
 
 .tooltip:hover .tooltiptext {
