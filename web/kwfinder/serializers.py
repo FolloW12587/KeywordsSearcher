@@ -3,7 +3,6 @@ from rest_framework import serializers
 from . import models
 
 
-
 class ASOWorldRegionSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ASOWorldRegion
@@ -13,7 +12,7 @@ class ASOWorldRegionSerializer(serializers.ModelSerializer):
 class AppSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.App
-        exclude = ['keywords',]
+        exclude = ['keywords', ]
 
 
 class AppPlatformSerializer(serializers.ModelSerializer):
@@ -48,7 +47,7 @@ class DailyAggregatedPositionJoindedDataSerializer(serializers.ModelSerializer):
 
 class AppPositionScriptRunDataSerializer(serializers.ModelSerializer):
     datetime = serializers.DateTimeField(
-        source="run.started_at", format="%Y-%m-%d %H:%M:%S") # type: ignore
+        source="run.started_at", format="%Y-%m-%d %H:%M:%S")  # type: ignore
 
     class Meta:
         model = models.AppPositionScriptRunData
@@ -64,12 +63,12 @@ class KeitaroDailyAppDataSerializer(serializers.ModelSerializer):
 class KeitaroDailyAppDataSerializerNonStaff(serializers.ModelSerializer):
     class Meta:
         model = models.KeitaroDailyAppData
-        exclude = ["revenue",]
+        exclude = ["revenue", ]
 
 
 class ConsoleDailyDataSerializer(serializers.ModelSerializer):
     conversion = serializers.ReadOnlyField()
-    
+
     class Meta:
         model = models.ConsoleDailyData
         fields = '__all__'
@@ -79,3 +78,12 @@ class ASOWorldOrderKeywordDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ASOWorldOrderKeywordData
         fields = '__all__'
+
+
+class ConsoleDailyAPIDataSerializer(serializers.Serializer):
+    app_num = serializers.CharField(max_length=255)
+    keyword = serializers.CharField(max_length=255)
+    region = serializers.CharField(max_length=2)
+    date = serializers.DateField()
+    installs = serializers.IntegerField()
+    views = serializers.IntegerField()

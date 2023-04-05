@@ -1,14 +1,22 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django_filters.rest_framework import DjangoFilterBackend
+import logging
 from rest_framework import filters
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from . import models, serializers
+from .authentication import TokenAuthSupportQueryString
 from web.apps.permissions import get_allowed_apps
+
+
+logger = logging.getLogger(__name__)
 
 
 class AppView(ReadOnlyModelViewSet):
@@ -288,6 +296,55 @@ class ASOWorldOrderKeywordDataView(ReadOnlyModelViewSet):
 
         return queryset.filter(
             order__app__in=self.request.user.profile.apps_allowed.all())
+
+
+class ConsoleDataApiView(APIView):
+    """ API view that recieves console data """
+
+    authentication_classes = [
+        SessionAuthentication, TokenAuthSupportQueryString, ]
+    parser_classes = [JSONParser, ]
+    permission_classes = [IsAuthenticated, ]
+
+    def post(self, request) -> Response:
+        serializer = serializers.ConsoleDailyAPIDataSerializer(
+            data=request.data, many=True)
+        logger.info(f"New console data {serializer.initial_data}.")
+
+        if not serializer.is_valid():
+            return Response({"error": "invalid data"}, status=400)
+
+        response = {
+            'updated': 0,
+            'not_found': 0,
+            'created': 0
+        }
+
+        for data in serializer.data:
+            app = get_object_or_404(models.App, num=data['app_num'])
+
+            keyword = app.keywords.filter(
+                name=data['keyword'], region=data['region']).first()
+            if not keyword:
+                response['not_found'] += 1
+                continue
+
+            consoleData = models.ConsoleDailyData.objects.filter(
+                app=app, keyword=keyword, date=data['date']).first()
+
+            if not consoleData:
+                models.ConsoleDailyData.objects.create(
+                    app=app, keyword=keyword, date=data['date'],
+                    views=data['views'], installs=data['installs'])
+                response['created'] += 1
+                continue
+
+            consoleData.views = data['views']
+            consoleData.installs = data['installs']
+            consoleData.save()
+            response['updated'] += 1
+
+        return Response(response)
 
 
 @login_required

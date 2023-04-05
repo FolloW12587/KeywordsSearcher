@@ -2,13 +2,13 @@ from django.contrib import admin
 from django.http import HttpRequest
 from django.shortcuts import redirect, render
 from django.urls import path
-from rest_framework.authtoken.models import TokenProxy
+# from rest_framework.authtoken.models import TokenProxy
 
 from . import forms
 from . import models
 
 
-admin.site.unregister(TokenProxy)
+# admin.site.unregister(TokenProxy)
 
 
 @admin.register(models.AppPlatform)
