@@ -2,9 +2,13 @@ from django.contrib import admin
 from django.http import HttpRequest
 from django.shortcuts import redirect, render
 from django.urls import path
+from rest_framework.authtoken.models import TokenProxy
 
 from . import forms
 from . import models
+
+
+admin.site.unregister(TokenProxy)
 
 
 @admin.register(models.AppPlatform)
@@ -66,10 +70,10 @@ class KeywordAdmin(admin.ModelAdmin):
                             name=keyword, region=region)
                         app.keywords.add(keyword_db)
                         continue
-                    
+
                     if not app.keywords.contains(keyword):
                         app.keywords.add(keyword_db)
-                        
+
                 self.message_user(request, "Your csv file has been imported.")
                 return redirect("..")
         form = forms.CsvImportForm()
@@ -96,7 +100,7 @@ class AppInline(admin.TabularInline):
 
     def has_change_permission(self, request: HttpRequest, obj=None) -> bool:
         return False
-        
+
 
 @admin.register(models.AppGroup)
 class AppGroupAdmin(admin.ModelAdmin):
