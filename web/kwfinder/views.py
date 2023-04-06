@@ -306,15 +306,23 @@ class ConsoleDataApiView(APIView):
     parser_classes = [JSONParser, ]
     permission_classes = [IsAuthenticated, ]
 
+    def options(self, request, *args, **kwargs):
+        options = super().options(request, *args, **kwargs)
+        options.headers["Access-Control-Allow-Origin"] = "*"
+        options.headers["Access-Control-Allow-Headers"] = "X-Requested-With, Content-Type"
+        print(options)
+        return options
+
     def post(self, request) -> Response:
         serializer = serializers.ConsoleDailyAPIDataSerializer(
             data=request.data, many=True)
         logger.info(f"New console data {serializer.initial_data}.")
 
         if not serializer.is_valid():
+            logger.warning(serializer.errors)
             return Response({"error": "invalid data"}, status=400)
 
-        response = {
+        response_data = {
             'updated': 0,
             'not_found': 0,
             'created': 0
@@ -326,7 +334,7 @@ class ConsoleDataApiView(APIView):
             keyword = app.keywords.filter(
                 name=data['keyword'], region=data['region']).first()
             if not keyword:
-                response['not_found'] += 1
+                response_data['not_found'] += 1
                 continue
 
             consoleData = models.ConsoleDailyData.objects.filter(
@@ -336,15 +344,18 @@ class ConsoleDataApiView(APIView):
                 models.ConsoleDailyData.objects.create(
                     app=app, keyword=keyword, date=data['date'],
                     views=data['views'], installs=data['installs'])
-                response['created'] += 1
+                response_data['created'] += 1
                 continue
 
             consoleData.views = data['views']
             consoleData.installs = data['installs']
             consoleData.save()
-            response['updated'] += 1
+            response_data['updated'] += 1
 
-        return Response(response)
+        response = Response(response_data)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+
+        return response
 
 
 @login_required
