@@ -113,22 +113,46 @@ def consoleDataAddByFile(request, app_id: int):
         response_data = {
             'skipped': 0,
             'updated': 0,
-            'not_found': 0,
-            'created': 0
+            'created': 0,
+            'keywords_created': 0,
+            'keywords_failed_to_create': 0,
         }
 
         for data in serializer.data:
-            if app.num != data['app_num']:
+            if data['keyword'] == "Другое" or app.num != data['app_num']:
                 response_data['skipped'] += 1
                 continue
 
             keyword = app.keywords.filter(
                 name=data['keyword'], region=data['region']).first()
             if not keyword:
-                response_data['not_found'] += 1
-                logger.info(
+                logger.debug(
                     f"Not found keyword {data['keyword']} in region {data['region']}")
-                continue
+                keyword = models.Keyword.objects.filter(
+                    name=data['keyword'], region=data['region']).first()
+                if not keyword:
+                    region = models.ASOWorldRegion.objects.filter(
+                        code=data['region']).first()
+
+                    if not region:
+                        continue
+
+                    keyword = models.Keyword.objects.create(
+                        name=data['keyword'],
+                        region=region
+                    )
+
+                    if not add_keyword_to_app_in_asoworld(app, keyword):
+                        app.keywords.remove(keyword)
+                        if keyword.app_set.count() == 0:  # type: ignore
+                            keyword.delete()
+
+                        response_data['keywords_failed_to_create'] += 1
+                        continue
+
+                    response_data['keywords_created'] += 1
+
+                app.keywords.add(keyword)
 
             consoleData = models.ConsoleDailyData.objects.filter(
                 app=app, keyword=keyword, date=data['date']).first()
@@ -146,8 +170,9 @@ def consoleDataAddByFile(request, app_id: int):
             response_data['updated'] += 1
 
         message = {
-            "text": f"Skipped: {response_data['skipped']}, updated: {response_data['updated']}, \
-                not found: {response_data['not_found']}, created: {response_data['created']}",
+            "text": f"Данных о ключах: пропущено - {response_data['skipped']}, обновлено - {response_data['updated']}, \
+                создано - {response_data['created']}. Ключей: создано - {response_data['keywords_created']}, \
+                ошибок при создании - {response_data['keywords_failed_to_create']}",
             "success": True
         }
         request.session['message'] = message
