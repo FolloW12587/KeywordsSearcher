@@ -3,16 +3,17 @@
 {% block title %}Console data Add{% endblock %}
 {% block loads %}
 <script type="module" src="{% static "kwfinder/js/datepicker.js" %}"></script>
-<script type="module" src="{% static "apps/js/console_data_add.js" %}?version=1"></script>
+<script type="module" src="{% static "apps/js/console_data_add.js" %}?version=2"></script>
+<link href="{% static "admin/css/base.css" %}" rel="stylesheet">
 <script>
     const app_id = {{ app.id }};
     const app_name = "{{ app.name }}";
     const app_num = {{ app.num }};
     const keywords = {
         {% for keyword in keywords %}
-            {{ keyword.id }}: "{{ keyword.name }}",
+            {{ keyword.id }}: {name: "{{ keyword.name }}", region: "{{ keyword.region.code }}"},
         {% endfor %}
-    }
+    };
 </script>
 {% endblock %}
 {% block header_name %} Данные из консоли {% endblock %}
@@ -22,14 +23,29 @@
     <div class="title" style="font-size: larger;font-weight: bold;"> [{{ app.num }}] {{ app.name }}</div>
 </div> -->
 {% include "apps/includes/header_info.html" %}
+{% if message %}
+<ul class="messagelist">
+    <li class="{% if message.success %}success{% else %}error{% endif %}">{{ message.text }}</li>
+</ul>
+{% endif %}
 <div class="settings">
     <div style="display: flex;">
         <div class="date_range--picker"></div>
-        <div class="load_data">
-            <button id="load_data__button" class="load_data__button" disabled>Загрузить</button>
+        <div class="upload_file">
+            <form action="/apps_info/{{ app.id }}/console_data_add_file/" method="post" enctype="multipart/form-data">
+                <label class="input-file">
+                    {% csrf_token %}
+                    <input type="file" id="file-selector" accept=".json" name="file">
+                    <span class="input-file-btn primary_button">Загрузить json</span>
+                </label>
+                <input type="submit" class="default" value="Сохранить" name="_save" hidden>
+            </form>
+        </div>
+        <div class="load_data" style="margin-left: 0;">
+            <button id="load_data__button" class="load_data__button primary_button" disabled>Загрузить</button>
         </div>
         <div class="save_data">
-            <button id="save_data__button" class="save_data__button" disabled>Сохранить</button>
+            <button id="save_data__button" class="save_data__button primary_button" disabled>Сохранить</button>
         </div>
     </div>
 </div>

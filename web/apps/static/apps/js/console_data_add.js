@@ -15,6 +15,7 @@ let params = {
 const table = document.getElementById("table");
 const load_data_button = document.getElementById("load_data__button");
 const save_data_button = document.getElementById("save_data__button");
+const file_selector = document.getElementById("file-selector");
 const csrftoken = getCookie('csrftoken');
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -23,9 +24,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     load_data_button.addEventListener('click', loadData);
     save_data_button.addEventListener('click', saveData);
+    file_selector.addEventListener('change', fileUploaded);
     updateButtons();
 
 });
+
+function fileUploaded() {
+    let btn = document.querySelector('.input-file-btn');
+    btn.innerHTML = "Загружается...";
+    let input = document.querySelector('[name="_save"]');
+    input.click();
+}
 
 function updateTable() {
     if (params.console.isLoading) {
@@ -40,8 +49,9 @@ function updateTable() {
         let row = document.createElement("tr");
         row.classList.add('row');
         let s = "";
-        let keyword_name = keywords[data.keyword__id];
-        s += `<td>${keyword_name}</td>`;
+        let keyword_name = keywords[data.keyword__id].name;
+        let keyword_region = keywords[data.keyword__id].region;
+        s += `<td>[${keyword_region}] ${keyword_name}</td>`;
 
         s += `<td><input type="text" name="views" id="views_${data.keyword__id}" value="${data.views}"></td>`;
         s += `<td><input type="text" name="installs" id="installs_${data.keyword__id}" value="${data.installs}"></td>`;

@@ -1,14 +1,19 @@
 from django.contrib.auth.decorators import login_required
 from django.forms import modelform_factory
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.utils.datastructures import MultiValueDictKeyError
 import json
+import logging
 
 from .models import Profile
 from .permissions import check_app_permissions, get_allowed_apps
 from src.asoworld import add_app_to_asoworld, add_keyword_to_app_in_asoworld
 from src.apps_state import check_app
-from web.kwfinder import models
+from web.kwfinder import models, serializers
+
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -71,7 +76,84 @@ def consoleDataAdd(request, app_id: int):
         return JsonResponse({"success": True})
 
     keywords = app.keywords.all()
-    return render(request, 'apps/console_data_add.html', {'app': app, "keywords": keywords})
+    message = None
+    if 'message' in request.session:
+        message = request.session['message']
+        del request.session['message']
+    return render(request, 'apps/console_data_add.html', {'app': app, "keywords": keywords, "message": message})
+
+
+@check_app_permissions
+@login_required
+def consoleDataAddByFile(request, app_id: int):
+    def __responseWithError(text: str) -> HttpResponse:
+        message = {
+            "text": text,
+            "success": False
+        }
+        request.session['message'] = message
+        return HttpResponseRedirect(f'/apps_info/{app.id}/console_data/')
+
+    app = get_object_or_404(models.App, pk=app_id)
+
+    if request.method == "POST":
+        try:
+            data = json.loads(request.FILES['file'].read())
+        except json.JSONDecodeError:
+            return __responseWithError("Ошибка при декодировании файла! Убедитесь в его целостности.")
+        except MultiValueDictKeyError:
+            return __responseWithError("Не удалось найти файл. Убедитесь, что вы его отправили!")
+
+        serializer = serializers.ConsoleDailyAPIDataSerializer(
+            data=data, many=True)
+
+        if not serializer.is_valid():
+            return __responseWithError("Данные в загруженном файле невалидны!")
+
+        response_data = {
+            'skipped': 0,
+            'updated': 0,
+            'not_found': 0,
+            'created': 0
+        }
+
+        for data in serializer.data:
+            if app.num != data['app_num']:
+                response_data['skipped'] += 1
+                continue
+
+            keyword = app.keywords.filter(
+                name=data['keyword'], region=data['region']).first()
+            if not keyword:
+                response_data['not_found'] += 1
+                logger.info(
+                    f"Not found keyword {data['keyword']} in region {data['region']}")
+                continue
+
+            consoleData = models.ConsoleDailyData.objects.filter(
+                app=app, keyword=keyword, date=data['date']).first()
+
+            if not consoleData:
+                models.ConsoleDailyData.objects.create(
+                    app=app, keyword=keyword, date=data['date'],
+                    views=data['views'], installs=data['installs'])
+                response_data['created'] += 1
+                continue
+
+            consoleData.views = data['views']
+            consoleData.installs = data['installs']
+            consoleData.save()
+            response_data['updated'] += 1
+
+        message = {
+            "text": f"Skipped: {response_data['skipped']}, updated: {response_data['updated']}, \
+                not found: {response_data['not_found']}, created: {response_data['created']}",
+            "success": True
+        }
+        request.session['message'] = message
+        return HttpResponseRedirect(f'/apps_info/{app.id}/console_data/')
+
+    return HttpResponseRedirect(f'/apps_info/{app.id}/console_data/')
 
 
 @login_required

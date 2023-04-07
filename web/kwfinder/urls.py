@@ -30,8 +30,8 @@ urlpatterns = [
     path('groups_analytics/',
          views.groupsAnalytics,
          name='groups_analytics'),
-    path('console_data_api/',
-         views.ConsoleDataApiView.as_view(),
-         name='console_data_api')
+#     path('console_data_api/',
+#          views.ConsoleDataApiView.as_view(),
+#          name='console_data_api')
 ]
 urlpatterns += router.urls
