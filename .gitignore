@@ -148,3 +148,5 @@ web/media/*
 
 resources/*
 .vscode/settings.json
+.mypy.ini
+isort.conf

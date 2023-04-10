@@ -1,33 +1,31 @@
 import logging
-
 from typing import List
 
 from exceptions import LinksNotFound
-from web.kwfinder.services.googlePlayServicePlain import GooglePlayService
 from web.kwfinder import models
+from web.kwfinder.services.googlePlayServicePlain import GooglePlayService
 
 logger = logging.getLogger(__name__)
 
 
-def getGoogleLinks(keyword: str, strore_attributes: str,
-                   thread_num: int = 0) -> List[str]:
-    """ Uploads and returns links by the given `keyword`. """
+def getGoogleLinks(keyword: str, strore_attributes: str, thread_num: int = 0) -> List[str]:
+    """Uploads and returns links by the given `keyword`."""
     logger.info(f"Getting links for keyword {keyword} with store attributes {strore_attributes} in thread {thread_num}")
-    gPS = GooglePlayService(
-        base_url=__getGoogleBaseUrl(), thread_num=thread_num)
+    gPS = GooglePlayService(base_url=__getGoogleBaseUrl(), thread_num=thread_num)
 
     links = gPS.getAllAppLinks(keyword=keyword, attributes=strore_attributes)
     logger.info(f"{len(links)} links loaded in thread {thread_num}")
     if len(links) == 0:
-        raise LinksNotFound("Didn't find any links. Try angain in thread {thread_num}")
+        raise LinksNotFound(f"Didn't find any links. Try angain in thread {thread_num}")
 
     return links
 
 
 def __getGoogleBaseUrl() -> str:
-    """ Returns base search link for platform Google """
-    platform = models.AppPlatform.objects.get(name='Google')
+    """Returns base search link for platform Google"""
+    platform = models.AppPlatform.objects.get(name="Google")
     return platform.base_store_link
+
 
 # def saveLinks(links: List[str]):
 #     """ Saves all links in `links.csv` file """
