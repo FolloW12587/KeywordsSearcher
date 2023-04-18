@@ -6,31 +6,33 @@ from . import models
 class ASOWorldRegionSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ASOWorldRegion
-        fields = '__all__'
+        fields = "__all__"
 
 
 class AppSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.App
-        exclude = ['keywords', ]
+        exclude = [
+            "keywords",
+        ]
 
 
 class AppPlatformSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.AppPlatform
-        fields = '__all__'
+        fields = "__all__"
 
 
 class KeywordSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Keyword
-        fields = '__all__'
+        fields = "__all__"
 
 
 class DailyAggregatedPositionDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.DailyAggregatedPositionData
-        fields = '__all__'
+        fields = "__all__"
 
 
 class DailyAggregatedPositionJoindedDataSerializer(serializers.ModelSerializer):
@@ -42,28 +44,29 @@ class DailyAggregatedPositionJoindedDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.DailyAggregatedPositionData
-        fields = '__all__'
+        fields = "__all__"
 
 
 class AppPositionScriptRunDataSerializer(serializers.ModelSerializer):
-    datetime = serializers.DateTimeField(
-        source="run.started_at", format="%Y-%m-%d %H:%M:%S")  # type: ignore
+    datetime = serializers.DateTimeField(source="run.started_at", format="%Y-%m-%d %H:%M:%S")  # type: ignore
 
     class Meta:
         model = models.AppPositionScriptRunData
-        fields = '__all__'
+        fields = "__all__"
 
 
 class KeitaroDailyAppDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.KeitaroDailyAppData
-        fields = '__all__'
+        fields = "__all__"
 
 
 class KeitaroDailyAppDataSerializerNonStaff(serializers.ModelSerializer):
     class Meta:
         model = models.KeitaroDailyAppData
-        exclude = ["revenue", ]
+        exclude = [
+            "revenue",
+        ]
 
 
 class ConsoleDailyDataSerializer(serializers.ModelSerializer):
@@ -71,13 +74,21 @@ class ConsoleDailyDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.ConsoleDailyData
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ASOWorldOrderKeywordDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ASOWorldOrderKeywordData
-        fields = '__all__'
+        fields = "__all__"
+
+
+class AppGroupSerializer(serializers.ModelSerializer):
+    apps = serializers.SlugRelatedField(slug_field="id", many=True, read_only=True, source="app_set")
+
+    class Meta:
+        model = models.AppGroup
+        fields = "__all__"
 
 
 class ConsoleDailyAPIDataSerializer(serializers.Serializer):
