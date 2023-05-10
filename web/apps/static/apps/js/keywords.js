@@ -113,7 +113,7 @@ function createHistortyChart(data) {
     let positions = [];
 
     data.forEach(d => {
-        labels.push(d.datetime);
+        labels.push(d.datetime.slice(0, 10));
         if (d.position != 0) {
             positions.push(d.position);
         } else {
