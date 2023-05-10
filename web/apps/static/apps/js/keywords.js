@@ -96,7 +96,7 @@ function keywordPositionClicked(e) {
 }
 
 async function getKeywordPositionHistory(keyword_id) {
-    const url = `/position_data/?app__id=${app_id}&keyword__id=${keyword_id}&limit=20&ordering=-run__started_at`;
+    const url = `/daily_data/?app__id=${app_id}&keyword__id=${keyword_id}&limit=30&ordering=-date`;
 
     let response = await fetch(url)
         .then((response) => {
@@ -113,7 +113,7 @@ function createHistortyChart(data) {
     let positions = [];
 
     data.forEach(d => {
-        labels.push(d.datetime.slice(0, 10));
+        labels.push(d.date);
         if (d.position != 0) {
             positions.push(d.position);
         } else {
