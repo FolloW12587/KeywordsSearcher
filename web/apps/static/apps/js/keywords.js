@@ -114,7 +114,11 @@ function createHistortyChart(data) {
 
     data.forEach(d => {
         labels.push(d.datetime);
-        positions.push(d.position);
+        if (d.position != 0) {
+            positions.push(d.position);
+        } else {
+            positions.push(NaN);
+        }
     });
 
     const config = {
