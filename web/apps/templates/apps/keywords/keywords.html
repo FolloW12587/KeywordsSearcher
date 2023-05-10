@@ -4,7 +4,11 @@
 {% block header_name %} Ключевые слова {% endblock %}
 
 {% block loads %}
-    <script type="module" src="{% static "apps/js/keywords.js" %}?version=1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="{% static "apps/js/keywords.js" %}?version=2"></script>
+    <script>
+        const app_id = {{ app.id }};
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -21,12 +25,12 @@
             <th style="width: 70px;"></th>
         </tr>
         {% for keyword, position in positions.items %}
-            <tr class="row">
+            <tr class="row" data-id="{{ keyword.id }}">
                 <td>{{ keyword.name }}</td>
                 <td style="width: 70px; word-wrap: break-word;">
                     {% if not position %} - 
                     {% else %} 
-                        <div class="tooltip">
+                        <div class="tooltip keyword_position">
                             {{ position.position }} 
                             <span class="tooltiptext"> {{ position.run.started_at|date:"N j, Y, H:i" }} </span>
                         </div> 
@@ -34,15 +38,23 @@
                 </td>
                 <td>{{ keyword.region }}</td>
                 <td style="width: 70px; word-wrap: break-word;">
-                    <button class="delete_button" data-ask-to-delete data-id="{{ keyword.id }}">Удалить</button>
+                    <button class="delete_button" data-ask-to-delete>Удалить</button>
                 </td>
             </tr>
         {% endfor %}
     </tbody>
 </table>
-<div class="modal" id="modal">
+<div class="modal" id="delete-modal">
     <div class="modal-header">
         <div class="title">Подтвердите действие</div>
+        <button data-close-button class="close-button">&times;</button>
+    </div>
+    <div class="modal-body">
+    </div>
+</div>
+<div class="modal" id="history-modal">
+    <div class="modal-header">
+        <div class="title">История позиций</div>
         <button data-close-button class="close-button">&times;</button>
     </div>
     <div class="modal-body">

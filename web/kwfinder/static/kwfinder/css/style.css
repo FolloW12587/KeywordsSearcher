@@ -815,6 +815,16 @@ code {
     margin: 20px 0;
 }
 
+.chart {
+    width: 100%;
+    height: 100%;
+}
+
+.position_history--chart {
+    height: 600px;
+    width: 800px
+}
+
 .offset--value {
     margin-left: 5px;
 }
@@ -1392,7 +1402,7 @@ code {
     border-radius: 10px;
     z-index: 10;
     background-color: white;
-    width: 500px;
+    min-width: 500px;
     max-width: 80%;
 }
 
@@ -1745,4 +1755,8 @@ th.sticky::after {
 /* Disabled */
 .input-file input[type=file]:disabled+span {
     background-color: #eee;
+}
+
+.keyword_position {
+    cursor: pointer;
 }
