@@ -1,6 +1,5 @@
 from django.conf import settings
 
-
 LOG_CONFIG = {
     "version": 1,
     'disable_existing_loggers': False,
@@ -8,9 +7,6 @@ LOG_CONFIG = {
         "handlers": ["console", "file", "info_file"],
         "level": "DEBUG" if settings.DEBUG else "INFO",
     },
-    # "loggers": {
-    #     ""
-    # },
     "handlers": {
         "console": {
             "formatter": "std_out",
@@ -19,14 +15,18 @@ LOG_CONFIG = {
         },
         "file": {
             "formatter": "file_formatter",
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/errors.log",
+            "maxBytes": 5*1024*1024,
+            "backupCount": 5,
             "level": "ERROR"
         },
         "info_file": {
             "formatter": "file_formatter",
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": "logs/info.log",
+            "maxBytes": 5*1024*1024,
+            "backupCount": 5,
             "level": "DEBUG" if settings.DEBUG else "INFO"
         }
     },
