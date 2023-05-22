@@ -1,16 +1,17 @@
 import logging
+
 import requests
 from bs4 import BeautifulSoup
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 
 from web.kwfinder import models
-
+from web.kwfinder.services.proxy.mobile_proxy import MobileProxy
 
 logger = logging.getLogger(__name__)
 
 
-def check_app(app: models.App):
+def check_app(app: models.App, proxy: MobileProxy | None = None):
     """ Checks app state (banned / or not banned) and updates its icon
 
     Args:
@@ -18,8 +19,10 @@ def check_app(app: models.App):
     """
     logger.info(f"Checking app {app.name}_{app.num}.")
 
+    proxies = None if not proxy else proxy.requests_proxies_dict
+
     try:
-        r = requests.get(app.link)
+        r = requests.get(app.link, proxies=proxies)
     except Exception as e:
         logger.exception(e)
         logger.warning("Failed to check app's state!")

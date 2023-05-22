@@ -32,6 +32,10 @@ class MobileProxy:
     def __authorizationHeader(self) -> dict[str, str]:
         return {"Authorization": f"Bearer {self._api_key}"}
     
+    @property
+    def requests_proxies_dict(self) -> dict[str, str] | None:
+        return self.proxy_info.proxies_dict if self.proxy_info else None
+    
     @staticmethod
     def __apiMethod(f: Callable):
         def wrapper(*args, **kwargs):

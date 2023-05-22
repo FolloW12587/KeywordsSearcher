@@ -10,6 +10,7 @@ from django.utils.datastructures import MultiValueDictKeyError
 from src.apps_state import check_app
 from src.asoworld import add_app_to_asoworld, add_keyword_to_app_in_asoworld
 from web.kwfinder import models, serializers
+from web.kwfinder.services.proxy.mobile_proxy import MobileProxy
 
 from .models import Profile
 from .permissions import check_app_permissions, get_allowed_apps
@@ -190,7 +191,7 @@ def add_app(request):
                 profile = request.user.profile
                 profile.apps_allowed.add(app)
 
-            check_app(app)
+            check_app(app, proxy=MobileProxy())
             return HttpResponseRedirect(f"/apps_info/{app.id}/")
     else:
         form = Form()

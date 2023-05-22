@@ -24,7 +24,7 @@ class GooglePlayService:
         l = []
         url = f"{self.base_url}&q={keyword}&{attributes}"
 
-        proxies = None if not self.proxy or not self.proxy.proxy_info else self.proxy.proxy_info.proxies_dict
+        proxies = None if not self.proxy else self.proxy.requests_proxies_dict
 
         r = requests.get(url, proxies=proxies)
 
