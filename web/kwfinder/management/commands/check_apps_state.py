@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 
 from django.core.management.base import BaseCommand
 
@@ -18,4 +19,5 @@ class Command(BaseCommand):
         apps = models.App.objects.filter(is_active=True)
         proxy = MobileProxy()
         for app in apps:
-            check_app(app)
+            check_app(app, proxy=proxy)
+            sleep(2)
