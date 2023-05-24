@@ -20,7 +20,7 @@ class AppPlatformAdmin(admin.ModelAdmin):
 class AppAdmin(admin.ModelAdmin):
     list_display = ("name", "num", "region", "is_active")
     list_select_related = ("region",)
-    search_fields = ("name", "num", "campaign_id")
+    search_fields = ("name", "num", "campaign_id", "package_id")
     list_filter = ("is_active",)
     actions = ("unban",)
     filter_horizontal = ("keywords",)

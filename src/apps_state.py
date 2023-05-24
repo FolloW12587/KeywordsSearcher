@@ -6,12 +6,11 @@ from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 
 from web.kwfinder import models
-from web.kwfinder.services.proxy.mobile_proxy import MobileProxy
 
 logger = logging.getLogger(__name__)
 
 
-def check_app(app: models.App, proxy: MobileProxy | None = None):
+def check_app(app: models.App, session: requests.Session):
     """ Checks app state (banned / or not banned) and updates its icon
 
     Args:
@@ -19,10 +18,8 @@ def check_app(app: models.App, proxy: MobileProxy | None = None):
     """
     logger.info(f"Checking app {app.name}_{app.num}.")
 
-    proxies = None if not proxy else proxy.requests_proxies_dict
-
     try:
-        r = requests.get(app.link, proxies=proxies)
+        r = session.get(app.link)
     except Exception as e:
         logger.exception(e)
         logger.warning("Failed to check app's state!")
@@ -37,11 +34,15 @@ def check_app(app: models.App, proxy: MobileProxy | None = None):
     parsed_html = BeautifulSoup(r.text, features="html.parser")
     img = parsed_html.find('img', class_='T75of nm4vBd arM4bb')
 
+    __update_icon(app=app, img=img, session=session)
+
+
+def __update_icon(app: models.App, img, session: requests.Session):
     if not img:
         logger.warning("Failed to update icon!")
         return
 
-    img_data = requests.get(img['src'])
+    img_data = session.get(img['src'])
 
     img_temp = NamedTemporaryFile(delete=True)
     img_temp.write(img_data.content)
