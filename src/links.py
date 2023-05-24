@@ -1,18 +1,19 @@
 import logging
 from typing import List
 
+from requests import Session
+
 from exceptions import LinksNotFound
 from web.kwfinder import models
 from web.kwfinder.services.googlePlayServicePlain import GooglePlayService
-from web.kwfinder.services.proxy.mobile_proxy import MobileProxy
 
 logger = logging.getLogger(__name__)
 
 
-def getGoogleLinks(keyword: str, strore_attributes: str, thread_num: int = 0, proxy: MobileProxy | None = None) -> List[str]:
+def getGoogleLinks(keyword: str, strore_attributes: str, thread_num: int = 0, session: Session | None = None) -> List[str]:
     """Uploads and returns links by the given `keyword`."""
     logger.info(f"Getting links for keyword {keyword} with store attributes {strore_attributes} in thread {thread_num}")
-    gPS = GooglePlayService(base_url=__getGoogleBaseUrl(), thread_num=thread_num, proxy=proxy)
+    gPS = GooglePlayService(base_url=__getGoogleBaseUrl(), thread_num=thread_num, session=session)
 
     links = gPS.getAllAppLinks(keyword=keyword, attributes=strore_attributes)
     logger.info(f"{len(links)} links loaded in thread {thread_num}")

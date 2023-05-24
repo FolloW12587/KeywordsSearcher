@@ -7,12 +7,13 @@ from typing import List
 from django.conf import settings
 from django.db.models import Count, Q
 from django.db.models.query import QuerySet
-from requests.exceptions import SSLError
+from requests import Session
 
 from exceptions import LinksNotFound
 from src.links import getGoogleLinks
 from web.kwfinder import models
-from web.kwfinder.services.proxy.mobile_proxy import MobileProxy
+from web.kwfinder.services.proxy.simple_proxy import (
+    create_proxy_requests_session, get_proxy, safe_proxy_repr)
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,6 @@ def getKeywordsStats():
     script_run = models.AppPositionScriptRun()
     script_run.save()
     splitted_keywords = __getSplittedKeywords()
-    proxy = MobileProxy()
     with ThreadPoolExecutor(settings.NUMBER_OF_THREADS) as executor:
         executor.map(
             __keywordsThreadFunc,
@@ -34,7 +34,6 @@ def getKeywordsStats():
             ]
             * settings.NUMBER_OF_THREADS,
             range(settings.NUMBER_OF_THREADS),
-            [ proxy,] * settings.NUMBER_OF_THREADS
         )
     script_run.ended_at = datetime.now()
     script_run.save()
@@ -42,11 +41,19 @@ def getKeywordsStats():
 
 def __keywordsThreadFunc(keywords: List[models.Keyword], 
                          run: models.AppPositionScriptRun, 
-                         thread_num: int = 0, 
-                         proxy: MobileProxy | None = None):
+                         thread_num: int = 0):
     """Func to get all stata for given `keywords list`
     and write it to db for given `run`"""
     logger.info(f"Started thread {thread_num} of run with id {run.id}")
+    proxies = get_proxy()
+    if not proxies:
+        logger.error("Can't find proxy. Aborting!")
+        return
+    
+    session = create_proxy_requests_session(proxy=proxies)
+    if not session:
+        logger.error(f"Can't create session for proxy {safe_proxy_repr(proxies)}. Aborting!")
+        return
 
     for i, keyword in enumerate(keywords):
         if i % 10 == 0:
@@ -55,9 +62,8 @@ def __keywordsThreadFunc(keywords: List[models.Keyword],
         if not __precessKeyword(
             keyword=keyword,
             run=run,
-            attempt=1,
             thread_num=thread_num,
-            proxy=proxy
+            session=session
         ):
             break
 
@@ -66,9 +72,8 @@ def __keywordsThreadFunc(keywords: List[models.Keyword],
 
 def __precessKeyword(keyword: models.Keyword, 
                      run: models.AppPositionScriptRun,
-                     attempt: int = 1,
                      thread_num: int = 0, 
-                     proxy: MobileProxy | None = None) -> bool:
+                     session: Session | None = None) -> bool:
     """Processing keyword in thread
 
     Args:
@@ -76,7 +81,6 @@ def __precessKeyword(keyword: models.Keyword,
         run (models.AppPositionScriptRun): run object
         attempt (int, optional): Attempt num. Defaults to 0.
         thread_num (int, optional): Thread num. Defaults to 0.
-        proxy (MobileProxy | None, optional): Proxy to use. Defaults to None.
 
     Returns:
         Bool: True if processed successfully. Else False.
@@ -84,19 +88,7 @@ def __precessKeyword(keyword: models.Keyword,
     sleep(settings.TIME_TO_SLEEP / 2)
 
     try:
-        __getKeywordStatistics(keyword=keyword, thread_num=thread_num, run=run, proxy=proxy)
-    except SSLError as e:
-        logger.exception(e)
-        if not proxy or attempt > 1:
-            logger.error(f"Can't get keywords statistics in thread {thread_num} for keyword {keyword}.")
-            return False
-
-        logger.info(f"Rotating proxy in thread {thread_num}")
-        if not proxy.rotateProxyIp():
-            logger.error(f"Attempt of rotating proxy was unsuccessfull!")
-            return False
-        
-        return __precessKeyword(keyword=keyword, run=run, attempt=attempt + 1, thread_num=thread_num, proxy=proxy)
+        __getKeywordStatistics(keyword=keyword, thread_num=thread_num, run=run, session=session)
 
     except LinksNotFound as e:
         logger.warning(e)
@@ -123,7 +115,7 @@ def __getSplittedKeywords() -> List[List[models.Keyword]]:
 def __getKeywordStatistics(keyword: models.Keyword, 
                            thread_num: int, 
                            run: models.AppPositionScriptRun, 
-                           proxy: MobileProxy | None = None):
+                           session: Session | None = None):
     """Returns statistic for `keyword`. It is dict. The key is app link,
     value is position in google play store (0 if not exists)."""
     if not keyword.region.google_store_link_attributes:
@@ -134,7 +126,7 @@ def __getKeywordStatistics(keyword: models.Keyword,
         keyword=keyword.name, 
         thread_num=thread_num, 
         strore_attributes=keyword.region.google_store_link_attributes, 
-        proxy=proxy
+        session=session
     )
     apps = keyword.app_set.filter(is_active=True)  # type: ignore
     apps: QuerySet[models.App]
