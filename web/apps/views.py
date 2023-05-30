@@ -11,6 +11,8 @@ from src.apps_state import check_app
 from src.asoworld import add_app_to_asoworld, add_keyword_to_app_in_asoworld
 from web.kwfinder import models, serializers
 from web.kwfinder.services.proxy.mobile_proxy import MobileProxy
+from web.kwfinder.services.proxy.simple_proxy import (
+    create_proxy_requests_session, get_proxy, safe_proxy_repr)
 
 from .models import Profile
 from .permissions import check_app_permissions, get_allowed_apps
@@ -55,10 +57,12 @@ def consoleDataAdd(request, app_id: int):
                 except models.Keyword.DoesNotExist:
                     continue
 
-                console_data = models.ConsoleDailyData.objects.filter(app=app, keyword=keyword, date=d["date"]).first()
+                console_data = models.ConsoleDailyData.objects.filter(
+                    app=app, keyword=keyword, date=d["date"]).first()
 
                 if not console_data:
-                    console_data = models.ConsoleDailyData(app=app, keyword=keyword, date=d["date"])
+                    console_data = models.ConsoleDailyData(
+                        app=app, keyword=keyword, date=d["date"])
 
                 console_data.views = d["views"]
                 console_data.installs = d["installs"]
@@ -95,7 +99,8 @@ def consoleDataAddByFile(request, app_id: int):
         except MultiValueDictKeyError:
             return __responseWithError("Не удалось найти файл. Убедитесь, что вы его отправили!")
 
-        serializer = serializers.ConsoleDailyAPIDataSerializer(data=data, many=True)
+        serializer = serializers.ConsoleDailyAPIDataSerializer(
+            data=data, many=True)
 
         if not serializer.is_valid():
             return __responseWithError("Данные в загруженном файле невалидны!")
@@ -113,17 +118,22 @@ def consoleDataAddByFile(request, app_id: int):
                 response_data["skipped"] += 1
                 continue
 
-            keyword = app.keywords.filter(name=data["keyword"], region=data["region"]).first()
+            keyword = app.keywords.filter(
+                name=data["keyword"], region=data["region"]).first()
             if not keyword:
-                logger.debug(f"Not found keyword {data['keyword']} in region {data['region']}")
-                keyword = models.Keyword.objects.filter(name=data["keyword"], region=data["region"]).first()
+                logger.debug(
+                    f"Not found keyword {data['keyword']} in region {data['region']}")
+                keyword = models.Keyword.objects.filter(
+                    name=data["keyword"], region=data["region"]).first()
                 if not keyword:
-                    region = models.ASOWorldRegion.objects.filter(code=data["region"]).first()
+                    region = models.ASOWorldRegion.objects.filter(
+                        code=data["region"]).first()
 
                     if not region:
                         continue
 
-                    keyword = models.Keyword.objects.create(name=data["keyword"], region=region)
+                    keyword = models.Keyword.objects.create(
+                        name=data["keyword"], region=region)
 
                     if not add_keyword_to_app_in_asoworld(app, keyword):
                         app.keywords.remove(keyword)
@@ -137,7 +147,8 @@ def consoleDataAddByFile(request, app_id: int):
 
                 app.keywords.add(keyword)
 
-            consoleData = models.ConsoleDailyData.objects.filter(app=app, keyword=keyword, date=data["date"]).first()
+            consoleData = models.ConsoleDailyData.objects.filter(
+                app=app, keyword=keyword, date=data["date"]).first()
 
             if not consoleData:
                 models.ConsoleDailyData.objects.create(
@@ -165,7 +176,8 @@ def consoleDataAddByFile(request, app_id: int):
 
 @login_required
 def add_app(request):
-    Form = modelform_factory(models.App, exclude=["keywords", "is_active", "icon"])
+    Form = modelform_factory(models.App, exclude=[
+                             "keywords", "is_active", "icon"])
     if request.method == "POST":
         form = Form(request.POST, request.FILES)
 
@@ -191,7 +203,18 @@ def add_app(request):
                 profile = request.user.profile
                 profile.apps_allowed.add(app)
 
-            check_app(app, proxy=MobileProxy())
+            proxies = get_proxy()
+            if not proxies:
+                logger.error("Can't find proxy. Aborting!")
+                return HttpResponseRedirect(f"/apps_info/{app.id}/")
+
+            session = create_proxy_requests_session(proxy=proxies)
+            if not session:
+                logger.error(
+                    f"Can't create session for proxy {safe_proxy_repr(proxies)}. Aborting!")
+                return HttpResponseRedirect(f"/apps_info/{app.id}/")
+
+            check_app(app, session)
             return HttpResponseRedirect(f"/apps_info/{app.id}/")
     else:
         form = Form()
@@ -206,7 +229,8 @@ def app_keywords(request, app_id: int):
 
     keywords = app.keywords.all().order_by("region", "name")
     positions = {
-        keyword: keyword.apppositionscriptrundata_set.filter(app=app).order_by("-run__started_at").first()
+        keyword: keyword.apppositionscriptrundata_set.filter(
+            app=app).order_by("-run__started_at").first()
         for keyword in keywords
     }
     return render(request, "apps/keywords/keywords.html", {"app": app, "positions": positions})
@@ -232,12 +256,14 @@ def add_keyword_to_app(request, app_id: int):
         form = Form(request.POST)
 
         if form.is_valid():
-            keyword = models.Keyword.objects.filter(**form.cleaned_data).first()
+            keyword = models.Keyword.objects.filter(
+                **form.cleaned_data).first()
 
             if not keyword:
                 keyword = form.save()
             elif app.keywords.contains(keyword):
-                message = {"text": f"Указанный ключ уже добавлен к приложению!", "success": False}
+                message = {
+                    "text": f"Указанный ключ уже добавлен к приложению!", "success": False}
                 return render(request, "apps/keywords/keyword_add.html", {"form": form, "app": app, "message": message})
 
             app.keywords.add(keyword)
@@ -285,7 +311,8 @@ def remove_keyword_from_app(request, app_id: int, keyword_id: int):
             "success": False,
         }
         return render(
-            request, "apps/keywords/keyword_remove.html", {"app": app, "keyword": keyword, "message": message}
+            request, "apps/keywords/keyword_remove.html", {
+                "app": app, "keyword": keyword, "message": message}
         )
 
     app.keywords.remove(keyword)
