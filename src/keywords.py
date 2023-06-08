@@ -39,8 +39,8 @@ def getKeywordsStats():
     script_run.save()
 
 
-def __keywordsThreadFunc(keywords: List[models.Keyword], 
-                         run: models.AppPositionScriptRun, 
+def __keywordsThreadFunc(keywords: List[models.Keyword],
+                         run: models.AppPositionScriptRun,
                          thread_num: int = 0):
     """Func to get all stata for given `keywords list`
     and write it to db for given `run`"""
@@ -49,15 +49,19 @@ def __keywordsThreadFunc(keywords: List[models.Keyword],
     if not proxies:
         logger.error("Can't find proxy. Aborting!")
         return
-    
-    session = create_proxy_requests_session(proxy=proxies)
-    if not session:
-        logger.error(f"Can't create session for proxy {safe_proxy_repr(proxies)}. Aborting!")
-        return
+
+    # session = create_proxy_requests_session(proxy=proxies)
+    # if not session:
+    #     logger.error(f"Can't create session for proxy {safe_proxy_repr(proxies)}. Aborting!")
+    #     return
 
     for i, keyword in enumerate(keywords):
         if i % 10 == 0:
-            logger.info(f"Thread {thread_num} - completed {i} out of {len(keywords)}")
+            logger.info(
+                f"Thread {thread_num} - completed {i} out of {len(keywords)}")
+
+        session = Session()
+        session.proxies = proxies
 
         if not __precessKeyword(
             keyword=keyword,
@@ -70,9 +74,9 @@ def __keywordsThreadFunc(keywords: List[models.Keyword],
     logger.info(f"Finished thread {thread_num}")
 
 
-def __precessKeyword(keyword: models.Keyword, 
+def __precessKeyword(keyword: models.Keyword,
                      run: models.AppPositionScriptRun,
-                     thread_num: int = 0, 
+                     thread_num: int = 0,
                      session: Session | None = None) -> bool:
     """Processing keyword in thread
 
@@ -88,7 +92,8 @@ def __precessKeyword(keyword: models.Keyword,
     sleep(settings.TIME_TO_SLEEP / 2)
 
     try:
-        __getKeywordStatistics(keyword=keyword, thread_num=thread_num, run=run, session=session)
+        __getKeywordStatistics(
+            keyword=keyword, thread_num=thread_num, run=run, session=session)
 
     except LinksNotFound as e:
         logger.warning(e)
@@ -100,32 +105,34 @@ def __precessKeyword(keyword: models.Keyword,
 
     return True
 
+
 def __getSplittedKeywords() -> List[List[models.Keyword]]:
     """Returns lists of keywords splitted approximately
     equal by the number of threads"""
-    keywords_qs = models.Keyword.objects.annotate(app_count=Count("app", filter=Q(app__is_active=True))).exclude(
-        app_count=0
-    )
+    keywords_qs = models.Keyword.objects.annotate(
+        app_count=Count("app", filter=Q(app__is_active=True))
+    ).exclude(app_count=0)
 
     keywords = list(keywords_qs)
     k, m = divmod(len(keywords), settings.NUMBER_OF_THREADS)
-    return [keywords[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in range(settings.NUMBER_OF_THREADS)]
+    return [keywords[i * k + min(i, m): (i + 1) * k + min(i + 1, m)] for i in range(settings.NUMBER_OF_THREADS)]
 
 
-def __getKeywordStatistics(keyword: models.Keyword, 
-                           thread_num: int, 
-                           run: models.AppPositionScriptRun, 
+def __getKeywordStatistics(keyword: models.Keyword,
+                           thread_num: int,
+                           run: models.AppPositionScriptRun,
                            session: Session | None = None):
     """Returns statistic for `keyword`. It is dict. The key is app link,
     value is position in google play store (0 if not exists)."""
     if not keyword.region.google_store_link_attributes:
-        logger.warning(f"Keyword {keyword} doesn't contain Google play market attributes!")
+        logger.warning(
+            f"Keyword {keyword} doesn't contain Google play market attributes!")
         return
 
     links = getGoogleLinks(
-        keyword=keyword.name, 
-        thread_num=thread_num, 
-        strore_attributes=keyword.region.google_store_link_attributes, 
+        keyword=keyword.name,
+        thread_num=thread_num,
+        strore_attributes=keyword.region.google_store_link_attributes,
         session=session
     )
     apps = keyword.app_set.filter(is_active=True)  # type: ignore
@@ -141,7 +148,8 @@ def __getKeywordStatistics(keyword: models.Keyword,
         except ValueError:
             position = 0
 
-        data = models.AppPositionScriptRunData(run=run, keyword=keyword, app=app, position=position)
+        data = models.AppPositionScriptRunData(
+            run=run, keyword=keyword, app=app, position=position)
         data.save()
 
 
@@ -149,14 +157,16 @@ def mergeKeywordStatsForDays(day: str):
     """Merges all stats for a `day`"""
     logger.info(f"Starting merging stats for {day}.")
     runs = list(
-        models.AppPositionScriptRun.objects.filter(started_at__range=[f"{day} 00:00:00", f"{day} 23:59:59"]).all()
+        models.AppPositionScriptRun.objects.filter(
+            started_at__range=[f"{day} 00:00:00", f"{day} 23:59:59"]).all()
     )
     apps = models.App.objects.all()
 
     data = []
     for app in apps:
         for keyword in app.keywords.all():
-            data.append(__aggregateKeywordStats(day=day, app=app, keyword=keyword, runs=runs))
+            data.append(__aggregateKeywordStats(
+                day=day, app=app, keyword=keyword, runs=runs))
 
     models.DailyAggregatedPositionData.objects.bulk_create(data)
     logger.info(f"Merging is ended. {len(data)} instances created.")
@@ -167,7 +177,8 @@ def __aggregateKeywordStats(
 ) -> models.DailyAggregatedPositionData:
     """Aggregates stats for given `day` for an `app` and `keyword`
     in bunch of `runs` and returns DailyAggregatedPositionData instance"""
-    data = models.AppPositionScriptRunData.objects.filter(keyword=keyword, run__in=runs, app=app).all()
+    data = models.AppPositionScriptRunData.objects.filter(
+        keyword=keyword, run__in=runs, app=app).all()
     position = __getMaxRepeatedElementOrAvg([d.position for d in data])
 
     return models.DailyAggregatedPositionData(
