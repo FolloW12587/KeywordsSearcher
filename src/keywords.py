@@ -69,7 +69,18 @@ def __keywordsThreadFunc(keywords: List[models.Keyword],
             thread_num=thread_num,
             session=session
         ):
-            break
+            logger.warning(
+                f"Error while processing keyword in thread {thread_num}! Sleep for 60 seconds and try again.")
+            sleep(60)
+            session = Session()
+            session.proxies = proxies
+            if not __precessKeyword(
+                keyword=keyword,
+                run=run,
+                thread_num=thread_num,
+                session=session
+            ):
+                break
 
     logger.info(f"Finished thread {thread_num}")
 
