@@ -6,6 +6,7 @@ from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 
 from web.kwfinder import models
+from web.kwfinder.services.telegram.telegram_bot import TelegramBot
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,11 @@ def check_app(app: models.App, session: requests.Session):
 
     if r.status_code == 404:
         logger.info(f"App {app.name}_{app.num} is most likely banned!")
+        if app.is_active:
+            bot = TelegramBot()
+            bot.sendMessage(
+                f"Приложение *{TelegramBot.translateMessage(app.name)}* с номером *{TelegramBot.translateMessage(app.num)}* забаненно\!",
+                parse_mode='MarkdownV2')
         app.is_active = False
         app.save()
         return

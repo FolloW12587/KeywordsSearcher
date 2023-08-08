@@ -22,10 +22,11 @@ class Command(BaseCommand):
         if not proxies:
             logger.error("Can't find proxy. Aborting!")
             return
-        
+
         session = create_proxy_requests_session(proxy=proxies)
         if not session:
-            logger.error(f"Can't create session for proxy {safe_proxy_repr(proxies)}. Aborting!")
+            logger.error(
+                f"Can't create session for proxy {safe_proxy_repr(proxies)}. Aborting!")
             return
 
         for app in apps:
