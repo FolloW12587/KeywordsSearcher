@@ -1,4 +1,5 @@
 import logging
+import random
 
 import requests
 from bs4 import BeautifulSoup
@@ -31,7 +32,7 @@ def check_app(app: models.App, session: requests.Session):
         if app.is_active:
             bot = TelegramBot()
             bot.sendMessage(
-                f"Приложение *{TelegramBot.translateMessage(app.name)}* с номером *{TelegramBot.translateMessage(app.num)}* забаненно\!",
+                f"Приложение *{TelegramBot.translateMessage(app.name)}* с номером *{TelegramBot.translateMessage(app.num)}* забаненно {random.choice(TelegramBot.SAD_FACES_EMOJIS)}",
                 parse_mode='MarkdownV2')
         app.is_active = False
         app.save()

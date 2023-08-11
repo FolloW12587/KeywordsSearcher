@@ -10,6 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class TelegramBot:
+    SAD_FACES_EMOJIS = config.SAD_FACE_EMOJIS
+
     def __init__(self) -> None:
         self._token = config.TELEGRAMBOT_TOKEN
         self._chat_id = config.TELEGRAMBOT_CHAT_ID
