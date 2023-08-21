@@ -1,8 +1,8 @@
 import logging
 import os
-import requests
 from typing import Any, Callable
 
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -89,10 +89,13 @@ class ASOWorldAPIService:
         r = requests.post(f"{self._host}/{endpoint}",
                           data=data, headers=headers)
 
-        if r.status_code != 200:
+        if r.status_code != 200 or "E" in r.json():
             logger.error(
                 f"Adding app to ASO World with data {data} ended with status code {r.status_code}. Message: {r.text}")
             return False
+
+        logger.info(
+            f"Added app with id {data['appId']}. Status: {r.status_code}. Info: {r.json()}")
 
         return True
 
