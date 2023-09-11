@@ -62,10 +62,12 @@ class KeywordAdmin(admin.ModelAdmin):
                     if keyword == "":
                         continue
 
-                    keyword_db = models.Keyword.objects.filter(name=keyword).first()
+                    keyword_db = models.Keyword.objects.filter(
+                        name=keyword).first()
 
                     if keyword_db == None:
-                        keyword_db = models.Keyword.objects.create(name=keyword, region=region)
+                        keyword_db = models.Keyword.objects.create(
+                            name=keyword, region=region)
                         app.keywords.add(keyword_db)
                         continue
 
@@ -192,7 +194,8 @@ class ASOWorldOrderKeywordDataInline(admin.TabularInline):
 
 @admin.register(models.ASOWorldOrder)
 class ASOWorldOrderAdmin(admin.ModelAdmin):
-    list_display = ("asoworld_id", "app", "submit_type", "state", "price", "started_at")
+    list_display = ("asoworld_id", "app", "submit_type",
+                    "state", "price", "started_at")
     list_select_related = ("app",)
     list_filter = ("submit_type", "state", "install_type")
     search_fields = ("asoworld_id",)
@@ -217,8 +220,8 @@ class ASOWorldOrderKeywordDataAdmin(admin.ModelAdmin):
     def has_add_permission(self, request, obj=None) -> bool:
         return False
 
-    def has_delete_permission(self, request, obj=None) -> bool:
-        return False
+    # def has_delete_permission(self, request, obj=None) -> bool:
+    #     return True
 
     def has_change_permission(self, request: HttpRequest, obj=None) -> bool:
         return False
